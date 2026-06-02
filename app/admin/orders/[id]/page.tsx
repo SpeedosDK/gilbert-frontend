@@ -8,31 +8,46 @@ import {
     AlertCircle,
     RefreshCw,
     Gavel,
-    PackageSearch,
     X,
     ShieldCheck,
     User,
     Truck,
     CreditCard,
     Fingerprint,
-    Info,
     Download
 } from "lucide-react";
+
+interface Order {
+    _id: string;
+    status?: string;
+    product?: { title?: string };
+    totalAmount?: number;
+    authenticationStatus?: string;
+    authenticationNotes?: string;
+    disputeReason?: string;
+    shippingError?: string;
+    shippingLabelUrl?: string;
+    shippingTrackingNumber?: string;
+    seller?: { username?: string; email?: string };
+    buyer?: { username?: string; email?: string };
+}
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 export default function AdminOrderDetailsPage() {
     const { id } = useParams();
     const router = useRouter();
-    const [order, setOrder] = useState<any>(null);
+    const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);
     const [isActionLoading, setIsActionLoading] = useState(false);
 
     const [showResolveModal, setShowResolveModal] = useState(false);
-    const [modalMode, setModalMode] = useState<'resolve' | 'return'>('resolve');
+    const [, setModalMode] = useState<'resolve' | 'return'>('resolve');
     const [adminNote, setAdminNote] = useState("");
 
     useEffect(() => {
         loadOrder();
-    }, [id]);
+    }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
     async function loadOrder() {
         try {
@@ -188,16 +203,16 @@ export default function AdminOrderDetailsPage() {
                                 <h4 className="text-[10px] font-black text-zinc-800 uppercase flex items-center gap-2 mb-3 tracking-widest italic">
                                     <ShieldCheck size={16} /> Authentication Report (Fail):
                                 </h4>
-                                <p className="text-lg italic font-serif text-zinc-700">"{order.authenticationNotes}"</p>
+                                <p className="text-lg italic font-serif text-zinc-700">&ldquo;{order.authenticationNotes}&rdquo;</p>
                             </div>
                         )}
 
                         {order.disputeReason && (
                             <div className="mb-10 p-8 bg-burgundy/5 border-l-4 border-burgundy rounded-r-3xl">
                                 <h4 className="text-[10px] font-black text-burgundy uppercase flex items-center gap-2 mb-3 tracking-widest italic">
-                                    <AlertCircle size={16} /> Buyer's Dispute Reason:
+                                    <AlertCircle size={16} /> Buyer&apos;s Dispute Reason:
                                 </h4>
-                                <p className="text-lg italic font-serif text-zinc-700">"{order.disputeReason}"</p>
+                                <p className="text-lg italic font-serif text-zinc-700">&ldquo;{order.disputeReason}&rdquo;</p>
                             </div>
                         )}
 
@@ -233,7 +248,7 @@ export default function AdminOrderDetailsPage() {
                                         <p className="text-sm font-black font-mono">{order.shippingTrackingNumber}</p>
                                     </div>
                                     <button
-                                        onClick={() => window.open(`/api/orders/${order._id}/label`, '_blank')}
+                                        onClick={() => window.open(`${API_URL}/api/orders/${order._id}/label`, '_blank')}
                                         className={`flex items-center gap-2 px-6 py-3 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md ${
                                             isReturningToSeller ? 'bg-zinc-800 hover:bg-black' : 'bg-zinc-900 hover:bg-racing-green'
                                         }`}
@@ -298,7 +313,7 @@ export default function AdminOrderDetailsPage() {
 
                                     {hasLabel && (
                                         <button
-                                            onClick={() => window.open(`/api/orders/${order._id}/label`, '_blank')}
+                                            onClick={() => window.open(`${API_URL}/api/orders/${order._id}/label`, '_blank')}
                                             className="w-full py-4 bg-white/10 border border-white/20 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white/20 transition-all flex items-center justify-center gap-3 mb-2"
                                         >
                                             <Download size={16} /> Print {isReturningToSeller ? 'Return' : ''} Label

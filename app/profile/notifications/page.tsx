@@ -264,13 +264,13 @@ function ChatThreadItem({ thread, user }: { thread: Thread, user: AuthUser | nul
             <div className="relative h-16 w-16 shrink-0 group-hover:scale-95 transition-transform">
                 <div className="h-full w-full bg-gray-100 rounded-2xl overflow-hidden border border-gray-100 relative shadow-sm">
                     {thread.productId?.images?.[0] ? (
-                        <Image src={`/api/images/products/${thread.productId.images[0]}`} alt="Product" fill className="object-cover" />
+                        <Image src={`${API_URL}/api/images/products/${thread.productId.images[0]}`} alt="Product" fill className="object-cover" />
                     ) : (
                         <div className="h-full w-full flex items-center justify-center text-[8px] bg-gray-100 text-gray-400">N/A</div>
                     )}
                 </div>
                 <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full border-2 border-white overflow-hidden bg-gray-300 shadow-md">
-                    <img src={`/api/images${partner?.profile?.avatarUrl || '/avatars/default.jpg'}`} className="h-full w-full object-cover" alt="partner" />
+                    <img src={`${API_URL}/api/images${partner?.profile?.avatarUrl || '/avatars/default.jpg'}`} className="h-full w-full object-cover" alt="partner" />
                 </div>
             </div>
             <div className="flex-1 min-w-0">

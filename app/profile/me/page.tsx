@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { api } from "@/app/api/api";
 import { toggleFavorite } from "@/app/api/favorites";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/UI/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/app/components/UI/tabs";
 import { Settings, X, ArrowRight, CreditCard, ShieldCheck, AlertCircle, Download, ExternalLink } from "lucide-react";
@@ -314,9 +316,8 @@ const MePage = () => {
                         <div className="text-center py-12 text-muted-foreground text-sm">No listings yet</div>
                     ) : (
                         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                            {products.map((p) => {
-                                // RETTELSE 2: Sikker key og ID-håndtering
-                                const productId = p._id || `temp-${Math.random()}`;
+                            {products.map((p, index) => {
+                                const productId = p._id || String(index);
 
                                 const mappedProduct = {
                                     id: productId,
@@ -385,7 +386,7 @@ const MePage = () => {
                                         alert("Shipping label has not been generated for this sale yet.");
                                         return;
                                     }
-                                    window.open(`/api/orders/${selectedSale._id}/label`, '_blank');
+                                    window.open(`${API_URL}/api/orders/${selectedSale._id}/label`, '_blank');
                                 }}
                                 className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-xs tracking-wide transition-all ${
                                     selectedSale.labelUrl

@@ -8,15 +8,23 @@ import {
     Search,
     ChevronRight,
     ArrowLeft,
-    Clock,
     ShieldCheck,
     Truck,
     Download,
-    XCircle // Tilføjet ikon til fejl
 } from "lucide-react";
 
+interface Order {
+    _id: string;
+    status: string;
+    product?: { title?: string };
+    totalAmount?: number;
+    authenticationStatus?: string;
+}
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+
 export default function AdminAuthenticationPage() {
-    const [orders, setOrders] = useState<any[]>([]);
+    const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -122,7 +130,7 @@ export default function AdminAuthenticationPage() {
                                         <button
                                             onClick={(e) => {
                                                 e.preventDefault();
-                                                window.open(`/api/orders/${order._id}/label`, '_blank');
+                                                window.open(`${API_URL}/api/orders/${order._id}/label`, '_blank');
                                             }}
                                             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm text-white ${
                                                 isFailed ? 'bg-zinc-800 hover:bg-black' : 'bg-racing-green hover:bg-zinc-800'
