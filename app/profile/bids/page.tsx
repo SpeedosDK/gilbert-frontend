@@ -1,19 +1,35 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { Gavel, ArrowUpRight, ArrowDownLeft, Loader2, ChevronRight, Inbox } from "lucide-react";
 import Link from "next/link";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+
+interface Bid {
+    _id: string;
+    amount: number;
+    counterAmount?: number;
+    status: string;
+    buyerId?: { _id: string };
+    productId?: {
+        _id: string;
+        title?: string;
+        images?: string[];
+    };
+}
+
 export default function MyBidsPage() {
     const { user } = useAuth();
-    const [bids, setBids] = useState<any[]>([]);
+    const [bids, setBids] = useState<Bid[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchBids = async () => {
             try {
-                const res = await fetch("/api/bids/my-bids");
+                const res = await fetch(`${API_URL}/api/bids/my-bids`);
                 const data = await res.json();
                 if (data.success) {
                     setBids(data.data);

@@ -3,14 +3,26 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import {
-    Tag, Plus, Trash2, X, ShieldCheck,
+    Plus, Trash2, X, ShieldCheck,
     Power, PowerOff, Copy, Check
 } from "lucide-react";
 import { Button } from "@/app/components/UI/button";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+
+interface DiscountCode {
+    _id: string;
+    code: string;
+    type: string;
+    amount: number;
+    active: boolean;
+    usedCount?: number;
+    maxUses: number;
+}
+
 export default function DiscountAdminPage() {
     const { user } = useAuth();
-    const [codes, setCodes] = useState<any[]>([]);
+    const [codes, setCodes] = useState<DiscountCode[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -32,18 +44,19 @@ export default function DiscountAdminPage() {
     // We run this every time user object changes to ensure we have the token
     useEffect(() => {
         fetchCodes();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user]);
 
     const fetchCodes = async () => {
         try {
-            const res = await fetch("/api/discount-codes", {
+            const res = await fetch(`${API_URL}/api/discount-codes`, {
                 headers: { "Authorization": `Bearer ${user?.token}` }
             });
             const data = await res.json();
             if (data.success) {
                 setCodes(data.codes);
             }
-        } catch (err) {
+        } catch {
             console.error("Failed to fetch codes");
         } finally {
             setLoading(false);
@@ -58,7 +71,7 @@ export default function DiscountAdminPage() {
 
     const handleToggleActive = async (id: string, currentStatus: boolean) => {
         try {
-            const res = await fetch(`/api/discount-codes/${id}`, {
+            const res = await fetch(`${API_URL}/api/discount-codes/${id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -70,7 +83,7 @@ export default function DiscountAdminPage() {
             const data = await res.json();
 
             if (res.ok && data.success) {
-                setCodes((prev: any[]) => prev.map((c: any) =>
+                setCodes((prev) => prev.map((c) =>
                     c._id === id ? { ...c, active: !currentStatus } : c
                 ));
             } else {
@@ -94,7 +107,7 @@ export default function DiscountAdminPage() {
         };
 
         try {
-            const res = await fetch("/api/discount-codes", {
+            const res = await fetch(`${API_URL}/api/discount-codes`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -111,7 +124,7 @@ export default function DiscountAdminPage() {
                 });
                 fetchCodes();
             }
-        } catch (err) {
+        } catch {
             alert("Error creating code");
         }
     };
@@ -119,12 +132,12 @@ export default function DiscountAdminPage() {
     const handleDelete = async (id: string) => {
         if (!confirm("Are you sure? This action cannot be undone.")) return;
         try {
-            const res = await fetch(`/api/discount-codes/${id}`, {
+            const res = await fetch(`${API_URL}/api/discount-codes/${id}`, {
                 method: "DELETE",
                 headers: { "Authorization": `Bearer ${user?.token}` }
             });
             if (res.ok) fetchCodes();
-        } catch (err) {
+        } catch {
             alert("Failed to delete");
         }
     };
@@ -162,7 +175,7 @@ export default function DiscountAdminPage() {
                     ) : codes.length === 0 ? (
                         <tr><td colSpan={5} className="p-10 text-center text-gray-400 text-xs font-bold uppercase tracking-widest">No discount codes found</td></tr>
                     ) : (
-                        codes.map((c: any) => (
+                        codes.map((c: DiscountCode) => (
                             <tr key={c._id} className={`hover:bg-ivory/20 transition-colors ${!c.active ? 'opacity-50' : ''}`}>
                                 <td className="p-4">
                                     <div className="flex items-center gap-3">

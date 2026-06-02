@@ -1,7 +1,7 @@
 // @/app/api/api.ts
 
-// Liste over sider, hvor man gerne må være uden at blive tvunget til login
 const PUBLIC_PATHS = ["/", "/products", "/terms", "/about", "/contact"];
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 export async function api(path: string, options: RequestInit = {}) {
     const isClient = typeof window !== "undefined";
@@ -11,7 +11,9 @@ export async function api(path: string, options: RequestInit = {}) {
         headers.set("Content-Type", "application/json");
     }
 
-    let res = await fetch(path, {
+    const fullUrl = `${API_URL}${path}`;
+
+    let res = await fetch(fullUrl, {
         ...options,
         credentials: "include",
         headers
@@ -23,13 +25,13 @@ export async function api(path: string, options: RequestInit = {}) {
     if (res.status === 401 && isClient && !isLogout && !isRefresh) {
         console.warn("401 Unauthorized – forsøger refresh…");
 
-        const refreshRes = await fetch("/api/auth/refresh", {
+        const refreshRes = await fetch(`${API_URL}/api/auth/refresh`, {
             method: "POST",
             credentials: "include"
         });
 
         if (refreshRes.ok) {
-            res = await fetch(path, {
+            res = await fetch(fullUrl, {
                 ...options,
                 credentials: "include",
                 headers

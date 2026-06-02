@@ -1,9 +1,9 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Upload, Save } from "lucide-react";
-import { api } from "@/app/api/api";
 
 export default function NewBlogPost() {
     const router = useRouter();
@@ -38,7 +38,7 @@ export default function NewBlogPost() {
                 formData.append("image", image);
             }
 
-            const res = await fetch("/api/blogs", {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/blogs`, {
                 method: "POST",
                 body: formData, // Ingen headers nødvendige, fetch ordner det selv
             });

@@ -1,6 +1,7 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import Link from "next/link";
 import Image from "next/image";
@@ -10,25 +11,61 @@ import {
     Bell,
     ArrowRight,
     Sparkles,
-    AlertTriangle,
     DollarSign,
     Package,
     TrendingUp
 } from "lucide-react";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+
+interface NotificationItem {
+    _id: string;
+    type: string;
+    read: boolean;
+    message?: string;
+    data?: {
+        image?: string;
+        title?: string;
+        price?: number;
+        productId?: string;
+        bidAmount?: number;
+        bidPrice?: number;
+        preview?: string;
+    };
+}
+
+interface ThreadUser {
+    _id: string;
+    username?: string;
+    profile?: { avatarUrl?: string };
+}
+
+interface Thread {
+    _id: string;
+    productId?: { title?: string; images?: string[] };
+    sellerId?: ThreadUser;
+    buyerId?: ThreadUser;
+    lastMessageAt: string;
+}
+
+interface AuthUser {
+    _id: string;
+    username: string;
+}
+
 export default function SocialHubPage() {
     const { user } = useAuth();
     const [activeTab, setActiveTab] = useState<"chats" | "activity">("chats");
-    const [threads, setThreads] = useState<any[]>([]);
-    const [notifications, setNotifications] = useState<any[]>([]);
+    const [threads, setThreads] = useState<Thread[]>([]);
+    const [notifications, setNotifications] = useState<NotificationItem[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const [threadsRes, notificationsRes] = await Promise.all([
-                    fetch("/api/chats/threads"),
-                    fetch("/api/notifications")
+                    fetch(`${API_URL}/api/chats/threads`),
+                    fetch(`${API_URL}/api/notifications`)
                 ]);
 
                 const threadsData = await threadsRes.json();
@@ -41,7 +78,7 @@ export default function SocialHubPage() {
                 if (notificationsData.success) {
                     // FILTRERING: Vi fjerner chat_message her, så de kun ses i Inbox
                     const activityOnly = (notificationsData.notifications || []).filter(
-                        (n: any) => n.type !== "chat_message"
+                        (n: NotificationItem) => n.type !== "chat_message"
                     );
                     setNotifications(activityOnly);
                 }
@@ -57,7 +94,7 @@ export default function SocialHubPage() {
     // Funktion til at markere som læst (lokal opdatering)
     const markAsRead = async (id: string) => {
         try {
-            await fetch(`/api/notifications/${id}/read`, { method: "POST" });
+            await fetch(`${API_URL}/api/notifications/${id}/read`, { method: "POST" });
             setNotifications(prev => prev.map(n => n._id === id ? { ...n, read: true } : n));
         } catch (err) {
             console.error("Failed to mark as read", err);
@@ -130,7 +167,7 @@ export default function SocialHubPage() {
 }
 
 /* --- ACTIVITY ITEM (Uden chatbeskeder) --- */
-function ActivityItem({ n, onMarkRead }: { n: any, onMarkRead: (id: string) => void }) {
+function ActivityItem({ n, onMarkRead }: { n: NotificationItem, onMarkRead: (id: string) => void }) {
     const d = n.data || {};
     const type = n.type || "";
 
@@ -218,7 +255,7 @@ function ActivityItem({ n, onMarkRead }: { n: any, onMarkRead: (id: string) => v
 }
 
 /* --- CHAT ITEM --- */
-function ChatThreadItem({ thread, user }: { thread: any, user: any }) {
+function ChatThreadItem({ thread, user }: { thread: Thread, user: AuthUser | null }) {
     const isSeller = thread.sellerId?._id === user?._id;
     const partner = isSeller ? thread.buyerId : thread.sellerId;
 
@@ -251,7 +288,7 @@ function ChatThreadItem({ thread, user }: { thread: any, user: any }) {
 }
 
 /* --- EMPTY STATE --- */
-function EmptyState({ icon, text }: { icon: any, text: string }) {
+function EmptyState({ icon, text }: { icon: React.ReactNode, text: string }) {
     return (
         <div className="p-24 text-center">
             <div className="text-gray-200 flex justify-center mb-6 scale-125">{icon}</div>

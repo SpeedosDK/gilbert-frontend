@@ -2,8 +2,16 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { api } from "@/app/api/api"; // Din rettede api helper uden hårdt redirect
 
+interface AuthUser {
+    _id: string;
+    username: string;
+    email: string;
+    role?: string;
+    [key: string]: unknown;
+}
+
 interface AuthContextType {
-    user: any;
+    user: AuthUser | null;
     loading: boolean;
     logout: () => void;
     checkAuth: () => Promise<void>;
@@ -12,7 +20,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = useState<any>(null);
+    const [user, setUser] = useState<AuthUser | null>(null);
     const [loading, setLoading] = useState(true);
 
     // Samlet og rettet checkAuth funktion

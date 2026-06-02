@@ -8,6 +8,8 @@ import ProductCard from "@/app/components/product/ProductCard";
 import UserCard from "@/app/components/user/UserCard";
 import { toggleFavorite } from "@/app/api/favorites";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+
 interface ApiUser {
     _id: string;
     username: string;
@@ -63,8 +65,8 @@ function SearchContent() {
             setLoading(true);
             try {
                 const [searchRes, favRes] = await Promise.allSettled([
-                    fetch(`/api/search?q=${encodeURIComponent(q)}`, { signal: controller.signal }),
-                    fetch("/api/favorites", { credentials: "include", signal: controller.signal }),
+                    fetch(`${API_URL}/api/search?q=${encodeURIComponent(q)}`, { signal: controller.signal }),
+                    fetch(`${API_URL}/api/favorites`, { credentials: "include", signal: controller.signal }),
                 ]);
 
                 let favoriteIds = new Set<string>();

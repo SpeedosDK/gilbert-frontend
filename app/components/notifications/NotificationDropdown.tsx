@@ -4,14 +4,32 @@ import Link from "next/link";
 import Image from "next/image";
 import { PackageSearch, MessageCircle, DollarSign, CheckCircle2, AlertTriangle, Bell } from "lucide-react";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+
+interface NotificationItem {
+    _id: string;
+    type: string;
+    read: boolean;
+    message?: string;
+    data?: {
+        chatId?: string;
+        threadId?: string;
+        productId?: string;
+        image?: string;
+        title?: string;
+        price?: number;
+        preview?: string;
+    };
+}
+
 interface NotificationDropdownProps {
-    notifications: any[];
+    notifications: NotificationItem[];
     onClose: () => void;
 }
 
 export default function NotificationDropdown({ notifications, onClose }: NotificationDropdownProps) {
 
-    const getUrl = (n: any) => {
+    const getUrl = (n: NotificationItem) => {
         const d = n.data || {};
         switch (n.type) {
             case "chat_message": return `/chats/${d.chatId || d.threadId}`;
@@ -37,7 +55,7 @@ export default function NotificationDropdown({ notifications, onClose }: Notific
                         <p className="text-xs italic">All caught up!</p>
                     </div>
                 ) : (
-                    notifications.map((n) => {
+                    notifications.map((n: NotificationItem) => {
                         const isNewProduct = n.type === "new_product_from_following";
                         const productImg = n.data?.image;
 
@@ -46,7 +64,7 @@ export default function NotificationDropdown({ notifications, onClose }: Notific
                                 key={n._id}
                                 href={getUrl(n)}
                                 onClick={() => {
-                                    fetch(`/api/notifications/${n._id}/read`, { method: "POST" }).catch(() => {});
+                                    fetch(`${API_URL}/api/notifications/${n._id}/read`, { method: "POST" }).catch(() => {});
                                     onClose();
                                 }}
                                 className={`block p-4 border-b hover:bg-gray-50 transition-all ${!n.read ? "bg-blue-50/30" : ""}`}
@@ -93,7 +111,7 @@ export default function NotificationDropdown({ notifications, onClose }: Notific
 
                                         {!isNewProduct && n.data?.preview && (
                                             <p className="text-xs text-gray-500 truncate mt-0.5 italic">
-                                                "{n.data.preview}"
+                                                &ldquo;{n.data?.preview}&rdquo;
                                             </p>
                                         )}
                                     </div>

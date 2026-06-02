@@ -1,8 +1,11 @@
 'use client';
-import { useEffect, useState, useRef } from "react";
+/* eslint-disable @next/next/no-img-element */
+import { useEffect, useState, useMemo } from "react";
 import { api } from "@/app/api/api";
 import CustomDropdown from "@/app/components/UI/CustomDropdown";
 import { AlertCircle, Package, Loader2, CheckCircle2 } from "lucide-react";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 type DropdownItem = { _id: string; name?: string; label?: string; value?: string };
 
@@ -15,7 +18,6 @@ export default function CreateProduct() {
     const [conditions, setConditions] = useState<DropdownItem[]>([]);
     const [colors, setColors] = useState<DropdownItem[]>([]);
     const [materials, setMaterials] = useState<DropdownItem[]>([]);
-    const [tags, setTags] = useState<DropdownItem[]>([]);
 
     // Form States
     const [selectedGender, setSelectedGender] = useState("");
@@ -27,14 +29,19 @@ export default function CreateProduct() {
     const [selectedColor, setSelectedColor] = useState("");
     const [selectedMaterial, setSelectedMaterial] = useState("");
 
-    // Fragt og vægt (vigtigt for store varer)
     const [isLargeItem, setIsLargeItem] = useState(false);
     const [weight, setWeight] = useState<number>(1000);
 
     const [images, setImages] = useState<File[]>([]);
     const [preview, setPreview] = useState<string[]>([]);
     const [loadingForm, setLoading] = useState(false);
-    const [isGenderDisabled, setIsGenderDisabled] = useState(false);
+
+    // ⭐ Derived value — no setState in effect
+    const isGenderDisabled = useMemo(() => {
+        const categoryObj = categories.find(c => c._id === selectedCategory);
+        const name = (categoryObj?.name || categoryObj?.label || "").toLowerCase();
+        return ['furniture', 'møbler', 'home', 'interior'].some(n => name === n);
+    }, [selectedCategory, categories]);
 
     // Load static data
     useEffect(() => {
@@ -46,7 +53,6 @@ export default function CreateProduct() {
                 condition: "/api/conditions",
                 color: "/api/colors",
                 material: "/api/materials",
-                tags: "/api/tags",
             };
             for (const [field, url] of Object.entries(endpoints)) {
                 try {
@@ -59,37 +65,34 @@ export default function CreateProduct() {
                     else if (field === "condition") setConditions(data);
                     else if (field === "color") setColors(data);
                     else if (field === "material") setMaterials(data);
-                    else if (field === "tags") setTags(data);
-                } catch (err) {
-                    console.error("Failed loading", field, err);
+                } catch {
+                    // ignore individual endpoint failures
                 }
             }
         }
         loadStatic();
-        return () => preview.forEach(url => URL.revokeObjectURL(url));
     }, []);
 
-    // ⭐ Fix for borde/møbler: Deaktiver køn og tænd for "Large Item"
+    // Revoke preview URLs when they change (memory cleanup)
     useEffect(() => {
-        const categoryObj = categories.find(c => c._id === selectedCategory);
-        const name = (categoryObj?.name || categoryObj?.label || "").toLowerCase();
+        return () => preview.forEach(url => URL.revokeObjectURL(url));
+    }, [preview]);
 
-        if (name === 'furniture' || name === 'møbler' || name === 'home' || name === 'interior') {
-            setIsGenderDisabled(true);
+    // ⭐ Handle category change — side effects in handler, not effect
+    const handleCategoryChange = (val: string) => {
+        setSelectedCategory(val);
+        const categoryObj = categories.find(c => c._id === val);
+        const name = (categoryObj?.name || categoryObj?.label || "").toLowerCase();
+        if (['furniture', 'møbler', 'home', 'interior'].some(n => name === n)) {
             setSelectedGender("");
             setIsLargeItem(true);
-        } else {
-            setIsGenderDisabled(false);
         }
-    }, [selectedCategory, categories]);
+    };
 
     // Filter subcategories
     useEffect(() => {
         async function loadSubcategories() {
-            if (!selectedCategory) {
-                setSubcategories([]);
-                return;
-            }
+            if (!selectedCategory) { setSubcategories([]); return; }
             try {
                 const genderItem = genders.find(g => g._id === selectedGender);
                 const genderName = genderItem?.name || "";
@@ -97,7 +100,7 @@ export default function CreateProduct() {
                 if (genderName) url += `&gender=${encodeURIComponent(genderName)}`;
                 const res = await fetch(url);
                 if (res.ok) setSubcategories(await res.json());
-            } catch (err) {}
+            } catch { /* ignore */ }
         }
         loadSubcategories();
     }, [selectedGender, selectedCategory, genders]);
@@ -105,14 +108,11 @@ export default function CreateProduct() {
     // Filter sizes
     useEffect(() => {
         async function loadSizes() {
-            if (!selectedCategory) {
-                setSizes([]);
-                return;
-            }
+            if (!selectedCategory) { setSizes([]); return; }
             try {
-                const res = await fetch(`/api/sizes?category=${selectedCategory}`);
+                const res = await fetch(`${API_URL}/api/sizes?category=${selectedCategory}`);
                 if (res.ok) setSizes(await res.json());
-            } catch (err) {}
+            } catch { /* ignore */ }
         }
         loadSizes();
     }, [selectedCategory]);
@@ -126,7 +126,6 @@ export default function CreateProduct() {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        // ⭐ Fallback køn hvis feltet er deaktiveret (fx bord)
         let finalGender = selectedGender;
         if (isGenderDisabled) {
             const fallback = genders.find(g =>
@@ -135,7 +134,6 @@ export default function CreateProduct() {
             if (fallback) finalGender = fallback._id;
         }
 
-        // ⭐ Validering før afsendelse
         if (!selectedCategory || !selectedSubcategory || !selectedBrand || !selectedCondition || !selectedColor || !selectedMaterial || !finalGender) {
             alert("Please fill out all required fields marked with *");
             return;
@@ -145,11 +143,9 @@ export default function CreateProduct() {
         const form = e.currentTarget;
         const formData = new FormData(form);
 
-        // Ryd op i de automatiske felter så vi sender vores state-id'er rent
         ["category", "subcategory", "brand", "gender", "condition", "color", "material", "size"].forEach(f => formData.delete(f));
         images.forEach((img) => formData.append("images", img));
 
-        // Sæt de korrekte værdier
         formData.set("category", selectedCategory);
         formData.set("subcategory", selectedSubcategory);
         formData.set("brand", selectedBrand);
@@ -181,7 +177,7 @@ export default function CreateProduct() {
 
             alert("Product published!");
             window.location.reload();
-        } catch (error) {
+        } catch {
             alert("A server error occurred.");
             setLoading(false);
         }
@@ -201,32 +197,25 @@ export default function CreateProduct() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Category */}
                     <div>
                         <label className="block font-bold mb-1 uppercase text-[10px] tracking-widest opacity-60">Category *</label>
-                        <CustomDropdown options={mapOptions(categories)} value={selectedCategory} onChange={setSelectedCategory} placeholder="Select category" />
+                        <CustomDropdown options={mapOptions(categories)} value={selectedCategory} onChange={handleCategoryChange} placeholder="Select category" />
                     </div>
-
-                    {/* Gender */}
                     <div>
                         <label className="block font-bold mb-1 uppercase text-[10px] tracking-widest opacity-60">Gender {isGenderDisabled ? '(N/A)' : '*'}</label>
                         <CustomDropdown options={mapOptions(genders)} value={selectedGender} onChange={setSelectedGender} placeholder={isGenderDisabled ? "Not applicable" : "Select gender"} disabled={isGenderDisabled} />
                     </div>
-
-                    {/* Subcategory */}
                     <div>
                         <label className="block font-bold mb-1 uppercase text-[10px] tracking-widest opacity-60">Subcategory *</label>
                         <CustomDropdown options={mapOptions(subcategories)} value={selectedSubcategory} onChange={setSelectedSubcategory} placeholder="Select subcategory" disabled={!selectedCategory} />
                     </div>
-
-                    {/* Brand */}
                     <div>
                         <label className="block font-bold mb-1 uppercase text-[10px] tracking-widest opacity-60">Brand *</label>
                         <CustomDropdown options={mapOptions(brands)} value={selectedBrand} onChange={setSelectedBrand} placeholder="Search brand" searchable />
                     </div>
                 </div>
 
-                {/* Shipping & Weight (Din vigtige nye sektion) */}
+                {/* Shipping & Weight */}
                 <div className="bg-racing-green/[0.03] p-6 rounded-2xl border border-racing-green/10 space-y-6">
                     <div className="flex items-center gap-2">
                         <Package size={16} className="text-racing-green" />
@@ -274,7 +263,6 @@ export default function CreateProduct() {
                     </div>
                 </div>
 
-                {/* Price & Description */}
                 <div>
                     <label className="block font-bold mb-1 uppercase text-[10px] tracking-widest opacity-60">Price (DKK) *</label>
                     <input type="number" name="price" required className="w-full p-4 bg-ivory border border-racing-green/10 rounded-2xl text-2xl font-black text-black" />
@@ -285,7 +273,6 @@ export default function CreateProduct() {
                     <textarea name="description" required className="w-full p-4 bg-ivory border border-racing-green/10 rounded-2xl h-32 text-black" />
                 </div>
 
-                {/* Images */}
                 <div className="bg-ivory/50 p-6 rounded-2xl border border-dashed border-racing-green/20">
                     <label className="block font-bold mb-4 uppercase text-[10px] tracking-widest opacity-60">Images *</label>
                     <input type="file" multiple accept="image/*" onChange={handleImageChange} className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-6 file:rounded-full file:bg-racing-green file:text-ivory file:font-black file:uppercase cursor-pointer" />

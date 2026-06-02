@@ -10,6 +10,8 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
 import MegaNav from "@/app/components/nav/MegaNav";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+
 interface Notification {
     _id: string;
     type: string;
@@ -46,7 +48,7 @@ const TopBar = () => {
     const fetchNotifications = useCallback(async () => {
         if (!user) return;
         try {
-            const res = await fetch('/api/notifications');
+            const res = await fetch(`${API_URL}/api/notifications`);
             if (res.ok) {
                 const data = await res.json();
                 if (data.success && Array.isArray(data.notifications)) {
@@ -87,7 +89,7 @@ const TopBar = () => {
 
         if (!notif.read) {
             try {
-                await fetch(`/api/notifications/${notif._id}/read`, {method: 'POST'});
+                await fetch(`${API_URL}/api/notifications/${notif._id}/read`, {method: 'POST'});
                 setNotifications((prev) =>
                     prev.map((n) => n._id === notif._id ? {...n, read: true} : n)
                 );

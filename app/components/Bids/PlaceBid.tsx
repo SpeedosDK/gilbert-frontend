@@ -5,6 +5,8 @@ import { Gavel, AlertCircle, ArrowUp } from "lucide-react";
 import { Button } from "@/app/components/UI/button";
 import { Input } from "@/app/components/UI/input";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+
 interface PlaceBidProps {
     productId: string;
     productPrice: number;
@@ -28,7 +30,7 @@ export const PlaceBid = ({ productId, productPrice, onBidPlaced }: PlaceBidProps
         setLoading(true);
 
         try {
-            const res = await fetch(`/api/bids/${productId}`, {
+            const res = await fetch(`${API_URL}/api/bids/${productId}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ amount: parseFloat(amount) }),
@@ -45,14 +47,14 @@ export const PlaceBid = ({ productId, productPrice, onBidPlaced }: PlaceBidProps
 
             if (!res.ok) {
                 console.error("Full Backend Error:", result);
-                // Hvis result er tomt, giv en standard fejlbesked
-                throw new Error(result.message || result.error || "Something went wrong on the server");
+                setError(result.message || result.error || "Something went wrong on the server");
+                return;
             }
 
             setSuccess(true);
             if (onBidPlaced) onBidPlaced();
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Something went wrong");
         } finally {
             setLoading(false);
         }

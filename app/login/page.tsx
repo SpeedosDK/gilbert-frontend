@@ -1,21 +1,17 @@
 "use client";
-import { useState, useEffect, Suspense } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 function LoginForm() {
     const searchParams = useSearchParams();
     const [activeTab, setActiveTab] = useState<"login" | "register">("login");
+
+    const sessionExpired = searchParams.get("reason") === "session_expired";
     const [message, setMessage] = useState("");
     const [messageType, setMessageType] = useState<"error" | "info">("error");
-
-    useEffect(() => {
-        const reason = searchParams.get("reason");
-        if (reason === "session_expired") {
-            setMessageType("info");
-            setMessage("Your session has expired. Please log in again.");
-        }
-    }, [searchParams]);
 
     function switchTab(tab: "login" | "register") {
         setActiveTab(tab);
@@ -32,7 +28,7 @@ function LoginForm() {
     async function handleRegister(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
-        const payload: any = Object.fromEntries(formData.entries());
+        const payload = Object.fromEntries(formData.entries()) as Record<string, string>;
 
         if (payload.password !== payload.confirmPassword) {
             setMessageType("error");
@@ -44,7 +40,7 @@ function LoginForm() {
             return setMessage("You must accept the terms");
         }
 
-        const registerPayload: any = {
+        const registerPayload: Record<string, unknown> = {
             username: payload.username,
             email: payload.email,
             password: payload.password,
@@ -58,9 +54,9 @@ function LoginForm() {
         submitAuth("register", registerPayload);
     }
 
-    async function submitAuth(endpoint: string, payload: any) {
+    async function submitAuth(endpoint: string, payload: unknown) {
         try {
-            const res = await fetch(`/api/auth/${endpoint}`, {
+            const res = await fetch(`${API_URL}/api/auth/${endpoint}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
@@ -84,7 +80,7 @@ function LoginForm() {
             }
 
             window.location.href = "/";
-        } catch (err) {
+        } catch {
             setMessageType("error");
             setMessage("Server error");
         }
@@ -120,9 +116,9 @@ function LoginForm() {
                 </button>
             </div>
 
-            {message && (
-                <p className={`mb-4 text-sm text-center font-bold ${messageType === "error" ? "text-red-600" : "text-blue-700"}`}>
-                    {message}
+            {(sessionExpired || message) && (
+                <p className={`mb-4 text-sm text-center font-bold ${(!sessionExpired && messageType === "error") ? "text-red-600" : "text-blue-700"}`}>
+                    {sessionExpired && !message ? "Your session has expired. Please log in again." : message}
                 </p>
             )}
 

@@ -1,10 +1,33 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { Send, Gavel, CheckCircle2, Loader2, X, Clock } from "lucide-react";
 import { Button } from "@/app/components/UI/button";
 import { Input } from "@/app/components/UI/input";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+
+interface ChatMessage {
+    text: string;
+    senderId?: { _id: string };
+    createdAt: string;
+}
+
+interface ActiveBid {
+    _id: string;
+    amount: number;
+    counterAmount?: number;
+    status: string;
+}
+
+interface ChatThread {
+    _id?: string;
+    productId?: { title?: string; price?: number; images?: string[] };
+    sellerId?: { _id: string };
+    buyerId?: { _id: string };
+}
 
 interface ChatViewProps {
     threadId: string;
@@ -14,9 +37,9 @@ interface ChatViewProps {
 const ChatView = ({ threadId, isModal = false }: ChatViewProps) => {
     const { user } = useAuth();
     const [currentId, setCurrentId] = useState(threadId);
-    const [messages, setMessages] = useState<any[]>([]);
-    const [activeBid, setActiveBid] = useState<any>(null);
-    const [thread, setThread] = useState<any>(null);
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [activeBid, setActiveBid] = useState<ActiveBid | null>(null);
+    const [thread, setThread] = useState<ChatThread | null>(null);
     const [newMessage, setNewMessage] = useState("");
     const [showPopup, setShowPopup] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -35,7 +58,7 @@ const ChatView = ({ threadId, isModal = false }: ChatViewProps) => {
             const timestamp = new Date().getTime();
             const cacheOptions = { cache: 'no-store' as RequestCache };
 
-            const threadRes = await fetch(`/api/chats/threads/${currentId}?t=${timestamp}`, cacheOptions);
+            const threadRes = await fetch(`${API_URL}/api/chats/threads/${currentId}?t=${timestamp}`, cacheOptions);
             const threadData = await threadRes.json();
 
             if (threadData.success && threadData.message) {
@@ -45,13 +68,13 @@ const ChatView = ({ threadId, isModal = false }: ChatViewProps) => {
                 }
             }
 
-            const msgRes = await fetch(`/api/chats/${currentId}/messages?t=${timestamp}`, cacheOptions);
+            const msgRes = await fetch(`${API_URL}/api/chats/${currentId}/messages?t=${timestamp}`, cacheOptions);
             const msgData = await msgRes.json();
             if (msgData.success) {
                 setMessages(msgData.message || []);
             }
 
-            const bidRes = await fetch(`/api/bids/active-in-thread/${currentId}?t=${timestamp}`, cacheOptions);
+            const bidRes = await fetch(`${API_URL}/api/bids/active-in-thread/${currentId}?t=${timestamp}`, cacheOptions);
             const bidData = await bidRes.json();
             if (bidData.success) setActiveBid(bidData.bid);
             else setActiveBid(null);
@@ -68,7 +91,7 @@ const ChatView = ({ threadId, isModal = false }: ChatViewProps) => {
         fetchData(true);
         const interval = setInterval(() => fetchData(false), 5000);
         return () => clearInterval(interval);
-    }, [threadId]);
+    }, [threadId]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         if (messages.length > 0) {
@@ -87,7 +110,7 @@ const ChatView = ({ threadId, isModal = false }: ChatViewProps) => {
         if (!newMessage.trim() || !currentId) return;
 
         try {
-            const res = await fetch(`/api/chats/${currentId}`, {
+            const res = await fetch(`${API_URL}/api/chats/${currentId}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text: newMessage })
@@ -104,7 +127,7 @@ const ChatView = ({ threadId, isModal = false }: ChatViewProps) => {
 
     const handleBidAction = async (action: 'accept' | 'reject' | 'accept-counter' | 'reject-counter', bidId: string) => {
         try {
-            const res = await fetch(`/api/bids/${bidId}/${action}`, {
+            const res = await fetch(`${API_URL}/api/bids/${bidId}/${action}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
             });
@@ -122,7 +145,7 @@ const ChatView = ({ threadId, isModal = false }: ChatViewProps) => {
         if (!counterAmount || isNaN(Number(counterAmount)) || !activeBid) return;
 
         try {
-            const res = await fetch(`/api/bids/${activeBid._id}/counter`, {
+            const res = await fetch(`${API_URL}/api/bids/${activeBid._id}/counter`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ counterAmount: Number(counterAmount) })

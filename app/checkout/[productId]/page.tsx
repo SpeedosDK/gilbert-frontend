@@ -10,6 +10,7 @@ import { useAuth } from "@/app/context/AuthContext";
 import { Loader2, AlertTriangle, ShieldCheck } from "lucide-react";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 interface Product {
     _id: string;
@@ -56,7 +57,7 @@ export default function CheckoutPage() {
 
     useEffect(() => {
         const fetchProduct = async () => {
-            const res = await fetch(`/api/products/${productId}`, { credentials: "include" });
+            const res = await fetch(`${API_URL}/api/products/${productId}`, { credentials: "include" });
             if (res.ok) {
                 const data = await res.json();
                 const prod = data.product || data;
@@ -78,7 +79,7 @@ export default function CheckoutPage() {
         if (!isLargeItem && (!address.zip || address.zip.length < 4)) return;
         setIsCalculating(true);
         try {
-            const res = await fetch(`/api/checkout/calculate`, {
+            const res = await fetch(`${API_URL}/api/checkout/calculate`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
@@ -117,7 +118,7 @@ export default function CheckoutPage() {
 
     const handlePreparePayment = async () => {
         setIsPreparing(true);
-        const res = await fetch(`/api/orders/create`, {
+        const res = await fetch(`${API_URL}/api/orders/create`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({

@@ -1,22 +1,34 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Plus, Trash2, Edit3, ExternalLink, Loader2, ChevronLeft, ChevronRight, Pin } from "lucide-react";
 
 const POSTS_PER_PAGE = 10;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+
+interface BlogPost {
+    _id: string;
+    title?: string;
+    slug?: string;
+    image?: string;
+    isActive?: boolean;
+    publishedAt?: string;
+    teaser?: string;
+}
 
 export default function AdminBlogList() {
-    const [posts, setPosts] = useState<any[]>([]);
+    const [posts, setPosts] = useState<BlogPost[]>([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
 
     const fetchPosts = async () => {
         try {
-            const res = await fetch('/api/blogs');
+            const res = await fetch(`${API_URL}/api/blogs`);
             const json = await res.json();
             if (json.success && Array.isArray(json.data)) {
-                const cleanPosts = json.data.map((item: any) => {
+                const cleanPosts = json.data.map((item: BlogPost & { _doc?: BlogPost }) => {
                     const baseData = item._doc ? item._doc : item;
                     return { ...baseData, teaser: item.teaser };
                 });
@@ -33,7 +45,7 @@ export default function AdminBlogList() {
         if (!id) return alert("Error: Post has no ID");
         if (!confirm("Are you sure you want to delete this post?")) return;
         try {
-            const res = await fetch(`/api/blogs/${id}`, { method: 'DELETE' });
+            const res = await fetch(`${API_URL}/api/blogs/${id}`, { method: 'DELETE' });
             if (res.ok) {
                 setPosts(prev => prev.filter(p => p._id !== id));
             } else {
