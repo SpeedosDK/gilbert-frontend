@@ -20,10 +20,11 @@ export function middleware(request: NextRequest) {
         return NextResponse.redirect(loginUrl);
     }
 
-    // 3. Redirect væk fra login/register hvis man ALLEREDE er logget ind
-    if (token && (pathname === '/login' || pathname === '/register')) {
-        return NextResponse.redirect(new URL('/', request.url));
-    }
+    // Bemærk: Vi redirecter IKKE væk fra /login selvom der findes en authToken-cookie.
+    // Middleware kan ikke validere om JWT'en faktisk er gyldig (den tjekker kun om
+    // cookien findes). En udløbet/ugyldig cookie ville ellers låse brugeren ude af
+    // login-siden, selvom de reelt er logget ud. AuthContext håndterer selv at vise
+    // korrekt UI baseret på /api/users/me.
 
     return NextResponse.next();
 }
