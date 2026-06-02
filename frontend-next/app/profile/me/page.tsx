@@ -1,0 +1,608 @@
+'use client';
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { api } from "@/app/api/api";
+import { toggleFavorite } from "@/app/api/favorites";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/UI/avatar";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/app/components/UI/tabs";
+import { Settings, X, ArrowRight, CreditCard, ShieldCheck, AlertCircle, Download, ExternalLink } from "lucide-react";
+import { Button } from "@/app/components/UI/button";
+
+import {
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator
+} from "@/app/components/UI/dropdown-menu";
+
+import ProductCard from "@/app/components/product/ProductCard";
+import type { ApiProduct } from "@/app/components/product/types";
+import Image from "next/image";
+
+interface OrderItem {
+    _id: string;
+    product?: { title?: string; images?: string[] };
+    totalAmount?: number;
+    sellerPayout?: number;
+    status?: string;
+    labelUrl?: string;
+    trackingNumber?: string;
+    buyer?: { name?: string; email?: string };
+    shippingAddress?: {
+        street?: string;
+        houseNumber?: string;
+        zip?: string;
+        city?: string
+    };
+    // Authentication fields
+    requiresAuthentication?: boolean;
+    authenticationStatus?: 'pending' | 'passed' | 'failed' | 'not_required';
+}
+
+interface FollowUser {
+    _id: string;
+    username: string;
+    profile?: { avatarUrl?: string };
+}
+
+interface FollowEntry {
+    followerId?: FollowUser;
+    followingId?: FollowUser;
+}
+
+interface UserProfile {
+    _id: string;
+    username: string;
+    cvr?: string;
+    location?: { city?: string; country?: string };
+    profile?: { bio?: string; language?: string; avatarUrl?: string };
+    role: string;
+    stripeAccountId?: string;
+}
+
+const MePage = () => {
+    const [user, setUser] = useState<UserProfile | null>(null);
+    const [products, setProducts] = useState<ApiProduct[]>([]);
+    const [orders, setOrders] = useState<OrderItem[]>([]);
+    const [soldItems, setSoldItems] = useState<OrderItem[]>([]);
+
+    const router = useRouter();
+    const [followers, setFollowers] = useState<FollowEntry[]>([]);
+    const [following, setFollowing] = useState<FollowEntry[]>([]);
+    const [showFollowers, setShowFollowers] = useState(false);
+    const [showFollowing, setShowFollowing] = useState(false);
+
+    // State for viewing sale details
+    const [selectedSale, setSelectedSale] = useState<OrderItem | null>(null);
+
+    // Status logic for Seller
+    const getSellerDisplayStatus = (item: OrderItem) => {
+        if (item.requiresAuthentication) {
+            if (item.authenticationStatus === 'pending') return 'Awaiting authentication';
+            if (item.authenticationStatus === 'passed') return 'Authentication passed – shipped to buyer';
+            if (item.authenticationStatus === 'failed') return 'Authentication failed – item returned';
+        }
+        if (item.status === 'delivered') return 'Delivered';
+        if (item.trackingNumber && item.trackingNumber !== 'ERROR') return 'Shipped';
+        if (item.status === 'paid') return 'Ready for shipment';
+        return item.status || 'Pending';
+    };
+
+    // Status logic for Buyer
+    const getBuyerDisplayStatus = (item: OrderItem) => {
+        if (item.requiresAuthentication) {
+            if (item.authenticationStatus === 'pending') return 'Awaiting authentication';
+            if (item.authenticationStatus === 'passed') return 'Authentication passed – on its way';
+            if (item.authenticationStatus === 'failed') return 'Authentication failed – item returned';
+        }
+        if (item.status === 'delivered') return 'Delivered';
+        if (item.trackingNumber && item.trackingNumber !== 'ERROR') return 'Shipped';
+        if (item.status === 'paid') return 'Processing';
+        return item.status || 'Pending';
+    };
+
+    // Helper to generate DAO tracking link
+    const getDaoTrackingLink = (trackingNumber?: string) => {
+        if (!trackingNumber) return "#";
+        return `https://www.dao.as/privat/find-pakke?pakke=${trackingNumber}`;
+    };
+
+    useEffect(() => {
+        async function loadAll() {
+            try {
+                const profileRes = await api("/api/users/me");
+                const profileJson = await profileRes.json();
+                if (!profileJson.success) return;
+                const userData = profileJson.data;
+                setUser(userData);
+
+                const [productsRes, favRes, ordersRes, salesRes, followersRes, followingRes] =
+                    await Promise.allSettled([
+                        api(`/api/products/user/${userData._id}?all=true`),
+                        api("/api/favorites"),
+                        api("/api/orders/my-orders"),
+                        api("/api/orders/my-sales"),
+                        api(`/api/follows/${userData._id}/followers`),
+                        api(`/api/follows/${userData._id}/following`),
+                    ]);
+
+                let favoriteIds = new Set<string>();
+                if (favRes.status === "fulfilled") {
+                    try {
+                        const favData = await favRes.value.json();
+                        if (favData.success) {
+                            favoriteIds = new Set(
+                                (favData.favorites || []).map((f: { _id: string }) => String(f._id))
+                            );
+                        }
+                    } catch {}
+                }
+
+                if (productsRes.status === "fulfilled") {
+                    const json = await productsRes.value.json();
+
+                    // RETTELSE 1: Håndter både {success: true, data: []} og bare []
+                    const productList = json.data || (Array.isArray(json) ? json : []);
+
+                    setProducts(productList.map((p: ApiProduct) => ({
+                        ...p,
+                        isFavorite: favoriteIds.has(String(p._id)),
+                    })));
+                }
+
+                if (ordersRes.status === "fulfilled") {
+                    const json = await ordersRes.value.json();
+                    if (json.success) setOrders(json.data);
+                }
+
+                if (salesRes.status === "fulfilled") {
+                    const json = await salesRes.value.json();
+                    if (json.success) setSoldItems(json.data);
+                }
+
+                if (followersRes.status === "fulfilled") {
+                    const json = await followersRes.value.json();
+                    if (json.success) setFollowers(json.data);
+                }
+
+                if (followingRes.status === "fulfilled") {
+                    const json = await followingRes.value.json();
+                    if (json.success) setFollowing(json.data);
+                }
+
+            } catch (err) {
+                console.error("Profile load error", err);
+            }
+        }
+        loadAll();
+    }, []);
+
+    // Body scroll lock for modals
+    useEffect(() => {
+        const locked = showFollowers || showFollowing;
+        document.body.style.overflow = locked ? "hidden" : "";
+        document.documentElement.style.overflow = locked ? "hidden" : "";
+        return () => {
+            document.body.style.overflow = "";
+            document.documentElement.style.overflow = "";
+        };
+    }, [showFollowers, showFollowing]);
+
+    async function handleToggleFavorite(productId: string) {
+        setProducts(prev =>
+            prev.map(p => p._id === productId ? { ...p, isFavorite: !p.isFavorite } : p)
+        );
+        const success = await toggleFavorite(productId);
+        if (!success) {
+            setProducts(prev =>
+                prev.map(p => p._id === productId ? { ...p, isFavorite: !p.isFavorite } : p)
+            );
+        }
+    }
+
+    async function handleLogout() {
+        try { await api("/api/auth/logout", { method: "POST" }); } catch {}
+        localStorage.removeItem("token");
+        router.push("/");
+    }
+
+    if (!user) return <p className="p-6 text-center text-muted-foreground">Loading…</p>;
+
+    const initials = user.username.slice(0, 2).toUpperCase();
+
+    return (
+        <div className="px-4 py-6 max-w-5xl mx-auto">
+            {/* --- PROFILE HEADER --- */}
+            <div className="flex items-start gap-4 mb-4">
+                <Avatar className="h-20 w-20 border-2 border-border/30">
+                    <AvatarImage src={user.profile?.avatarUrl || ""} alt={user.username} />
+                    <AvatarFallback className="bg-muted text-muted-foreground text-lg font-serif">
+                        {initials}
+                    </AvatarFallback>
+                </Avatar>
+
+                <div className="flex-1 pt-1">
+                    <div className="flex items-center gap-6 mb-2">
+                        <div className="text-center">
+                            <p className="text-lg font-semibold text-foreground">{products.length}</p>
+                            <p className="text-xs text-muted-foreground">Listings</p>
+                        </div>
+                        <div className="text-center cursor-pointer" onClick={() => setShowFollowers(true)}>
+                            <p className="text-lg font-semibold text-foreground">{followers.length}</p>
+                            <p className="text-xs text-muted-foreground">Followers</p>
+                        </div>
+                        <div className="text-center cursor-pointer" onClick={() => setShowFollowing(true)}>
+                            <p className="text-lg font-semibold text-foreground">{following.length}</p>
+                            <p className="text-xs text-muted-foreground">Following</p>
+                        </div>
+                    </div>
+
+                    {/* STRIPE STATUS BADGE */}
+                    <div className="flex items-center gap-2">
+                        {user.stripeAccountId ? (
+                            <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-green-600 bg-green-50 px-2.5 py-1 rounded-full border border-green-200 shadow-sm">
+                                <ShieldCheck size={10} />
+                                Verified Seller
+                            </div>
+                        ) : (
+                            <Link href="/settings/payouts" className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-burgundy bg-burgundy/5 px-2.5 py-1 rounded-full border border-burgundy/20 hover:bg-burgundy/10 transition-colors shadow-sm">
+                                <AlertCircle size={10} />
+                                Enable Payouts
+                            </Link>
+                        )}
+                    </div>
+                </div>
+
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="shrink-0 hover:bg-burgundy hover:text-ivory">
+                            <Settings className="h-5 w-5 text-muted-foreground" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                        <DropdownMenuItem asChild><Link href="/profile/edit">Edit profile</Link></DropdownMenuItem>
+
+                        <DropdownMenuItem asChild>
+                            <Link href="/settings/payouts" className="flex items-center gap-2">
+                                <CreditCard size={14} className="text-muted-foreground" />
+                                <span>Payout Settings</span>
+                            </Link>
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem asChild><Link href="/profile/change-email">Change email</Link></DropdownMenuItem>
+                        <DropdownMenuItem asChild><Link href="/profile/change-password">Change password</Link></DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        {user?.role === "admin" && (
+                            <DropdownMenuItem asChild>
+                                <Link href="/admin" className="text-accent font-semibold">Admin panel</Link>
+                            </DropdownMenuItem>
+                        )}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild><Link href="/products/create">Post a new product</Link></DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={handleLogout} className="text-red-600">Log out</DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+
+            <div className="mb-6">
+                <h1 className="text-xl font-serif font-bold text-foreground">{user.username}</h1>
+                <p className="text-sm text-muted-foreground">@{user.username}</p>
+            </div>
+
+            {/* --- TABS --- */}
+            <Tabs defaultValue="listings" className="w-full">
+                <TabsList className="w-full bg-muted/50 rounded-lg h-auto p-1 gap-0">
+                    {["Listings", "Sold", "Orders", "Info", "Help"].map((tab) => (
+                        <TabsTrigger
+                            key={tab}
+                            value={tab.toLowerCase()}
+                            className="flex-1 text-xs py-2 px-1 data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-md"
+                        >
+                            {tab}
+                        </TabsTrigger>
+                    ))}
+                </TabsList>
+
+                {/* TAB: LISTINGS */}
+                <TabsContent value="listings" className="mt-4">
+                    {products.length === 0 ? (
+                        <div className="text-center py-12 text-muted-foreground text-sm">No listings yet</div>
+                    ) : (
+                        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                            {products.map((p) => {
+                                // RETTELSE 2: Sikker key og ID-håndtering
+                                const productId = p._id || `temp-${Math.random()}`;
+
+                                const mappedProduct = {
+                                    id: productId,
+                                    title: p.title || "No Title",
+                                    brand: p.brand?.name || "",
+                                    price: p.price,
+                                    imageUrl: p.images?.[0] || "/images/ImagePlaceholder.jpg",
+                                    tag: p.tags?.[0]?.name,
+                                    isFavorite: Boolean(p.isFavorite),
+                                };
+
+                                return (
+                                    <div key={productId}>
+                                        <ProductCard product={mappedProduct} onToggleFavorite={handleToggleFavorite} />
+                                        <p className="text-xs mt-1 font-medium text-muted-foreground">Status: {p.status}</p>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </TabsContent>
+
+                {/* TAB: SOLD (Salg) */}
+                <TabsContent value="sold" className="mt-4">
+                    {selectedSale ? (
+                        /* ── SALE DETAIL VIEW ── */
+                        <div className="animate-in fade-in slide-in-from-bottom-2 duration-200">
+                            <button
+                                onClick={() => setSelectedSale(null)}
+                                className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground transition mb-5"
+                            >
+                                ← Back to sales
+                            </button>
+
+                            {/* Product hero */}
+                            <div className="flex gap-4 mb-6 p-4 bg-muted/20 rounded-2xl border border-border">
+                                <div className="relative h-20 w-20 rounded-xl overflow-hidden shrink-0 border border-border">
+                                    <Image
+                                        src={selectedSale.product?.images?.[0] || "/images/ImagePlaceholder.jpg"}
+                                        alt={selectedSale.product?.title || "Product"}
+                                        fill className="object-cover" sizes="80px" unoptimized
+                                    />
+                                </div>
+                                <div className="flex flex-col justify-center gap-1">
+                                    <h2 className="text-base font-bold text-foreground leading-tight">{selectedSale.product?.title || "Unknown product"}</h2>
+                                    <p className="text-sm font-bold text-green-600">+{selectedSale.sellerPayout || selectedSale.totalAmount} DKK</p>
+                                    <StatusBadge status={getSellerDisplayStatus(selectedSale)} />
+                                </div>
+                            </div>
+
+                            {/* Detail rows */}
+                            <div className="divide-y divide-border rounded-2xl border border-border overflow-hidden mb-6">
+                                <DetailRow label="Buyer" value={selectedSale.buyer?.name || selectedSale.buyer?.email || "Not provided"} />
+                                <DetailRow label="Shipping address" value={
+                                    selectedSale.shippingAddress
+                                        ? `${selectedSale.shippingAddress.street || ""} ${selectedSale.shippingAddress.houseNumber || ""}, ${selectedSale.shippingAddress.zip || ""} ${selectedSale.shippingAddress.city || ""}`.trim()
+                                        : "Not provided"
+                                } />
+                                <DetailRow label="Tracking number" value={selectedSale.trackingNumber || "Not yet generated"} />
+                            </div>
+
+                            {/* Download label */}
+                            <button
+                                onClick={() => {
+                                    if (!selectedSale.labelUrl) {
+                                        alert("Shipping label has not been generated for this sale yet.");
+                                        return;
+                                    }
+                                    window.open(`/api/orders/${selectedSale._id}/label`, '_blank');
+                                }}
+                                className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-xs tracking-wide transition-all ${
+                                    selectedSale.labelUrl
+                                        ? "bg-foreground text-background hover:opacity-80"
+                                        : "bg-muted text-muted-foreground cursor-not-allowed"
+                                }`}
+                            >
+                                <Download size={14} />
+                                {selectedSale.labelUrl ? "Download shipping label" : "Label not ready yet"}
+                            </button>
+                        </div>
+                    ) : soldItems.length === 0 ? (
+                        <div className="text-center py-16 text-muted-foreground text-sm italic">No sold items yet</div>
+                    ) : (
+                        <div className="space-y-2">
+                            {soldItems.map(item => (
+                                <div
+                                    key={item._id}
+                                    onClick={() => setSelectedSale(item)}
+                                    className="flex items-center gap-3 p-3 bg-card border border-border rounded-2xl hover:border-foreground/30 hover:shadow-sm cursor-pointer transition-all group"
+                                >
+                                    <div className="relative h-14 w-14 rounded-xl overflow-hidden shrink-0 border border-border">
+                                        <Image
+                                            src={item.product?.images?.[0] || "/images/ImagePlaceholder.jpg"}
+                                            alt={item.product?.title || "Product"}
+                                            className="object-cover"
+                                            fill sizes="56px" unoptimized
+                                        />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-semibold text-foreground truncate">{item.product?.title || "Deleted Product"}</p>
+                                        <p className="text-xs text-green-600 font-bold mt-0.5">+{item.sellerPayout || item.totalAmount} DKK</p>
+                                    </div>
+                                    <div className="flex flex-col items-end gap-1.5 shrink-0">
+                                        <StatusBadge status={getSellerDisplayStatus(item)} />
+                                        <ArrowRight size={14} className="text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </TabsContent>
+
+                {/* TAB: ORDERS (Køb) */}
+                <TabsContent value="orders" className="mt-4">
+                    {orders.length === 0 ? (
+                        <div className="text-center py-16 text-muted-foreground text-sm italic">No orders yet</div>
+                    ) : (
+                        <div className="space-y-2">
+                            {orders.map(order => (
+                                <div key={order._id} className="bg-card border border-border rounded-2xl overflow-hidden hover:border-foreground/30 hover:shadow-sm transition-all group">
+                                    <Link href={`/orders/${order._id}`} className="flex items-center gap-3 p-3">
+                                        <div className="relative h-14 w-14 rounded-xl overflow-hidden shrink-0 border border-border">
+                                            <Image
+                                                src={order.product?.images?.[0] || "/images/ImagePlaceholder.jpg"}
+                                                alt={order.product?.title || "Product"}
+                                                className="object-cover"
+                                                fill sizes="56px" unoptimized
+                                            />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-semibold text-foreground truncate">{order.product?.title || "Deleted Product"}</p>
+                                            <p className="text-xs text-burgundy font-bold mt-0.5">{order.totalAmount} DKK</p>
+                                        </div>
+                                        <div className="flex flex-col items-end gap-1.5 shrink-0">
+                                            <StatusBadge status={getBuyerDisplayStatus(order)} />
+                                            <ArrowRight size={14} className="text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+                                        </div>
+                                    </Link>
+
+                                    {/* Tracking row */}
+                                    {order.trackingNumber && order.trackingNumber !== 'ERROR' && (
+                                        <div className="mx-3 mb-3 flex items-center justify-between px-3 py-2.5 bg-muted/40 rounded-xl border border-border">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                                                <div>
+                                                    <p className="text-[9px] uppercase font-bold tracking-widest text-muted-foreground">Tracking</p>
+                                                    <p className="text-xs font-medium text-foreground">{order.trackingNumber}</p>
+                                                </div>
+                                            </div>
+                                            <a
+                                                href={getDaoTrackingLink(order.trackingNumber)}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-1 text-[10px] font-bold text-blue-600 hover:text-blue-800 transition"
+                                            >
+                                                Track <ExternalLink size={10} />
+                                            </a>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </TabsContent>
+
+                {/* TAB: INFO */}
+                <TabsContent value="info" className="mt-4">
+                    <div className="space-y-2 text-sm text-muted-foreground bg-muted/20 p-6 rounded-2xl">
+                        <p><strong>City:</strong> {user.location?.city || "Not specified"}</p>
+                        <p><strong>Country:</strong> {user.location?.country || "Not specified"}</p>
+                        <p><strong>CVR:</strong> {user.cvr || "N/A"}</p>
+                        <p><strong>Bio:</strong></p>
+                        <p className="italic">{user.profile?.bio || "No bio yet..."}</p>
+                        <p><strong>Language:</strong> {user.profile?.language || "en"}</p>
+                    </div>
+                </TabsContent>
+
+                {/* TAB: HELP */}
+                <TabsContent value="help" className="mt-4">
+                    <div className="text-center py-12 text-muted-foreground text-sm italic">
+                        Contact support for assistance with orders or listings.
+                    </div>
+                </TabsContent>
+            </Tabs>
+
+            {/* --- MODAL: FOLLOWERS --- */}
+            {showFollowers && (
+                <div className="fixed inset-0 bg-ivory-dark/40 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setShowFollowers(false)}>
+                    <div className="bg-ivory-dark border border-burgundy/40 p-5 rounded-xl w-80 max-h-[70vh] overflow-y-auto shadow-xl" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-lg font-semibold text-racing-green">Followers</h2>
+                            <button onClick={() => setShowFollowers(false)} className="text-racing-green hover:text-burgundy transition">
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+                        {followers.length === 0 ? <p className="text-sm text-racing-green">No followers yet</p> : (
+                            <ul className="space-y-3">
+                                {followers.map((f) => {
+                                    const u = f.followerId;
+                                    if (!u) return null;
+                                    return (
+                                        <li key={u._id} className="flex items-center gap-3">
+                                            <Avatar className="h-9 w-9 border border-burgundy/40">
+                                                <AvatarImage src={u.profile?.avatarUrl} />
+                                                <AvatarFallback className="bg-racing-green text-ivory-dark">{u.username.slice(0, 2).toUpperCase()}</AvatarFallback>
+                                            </Avatar>
+                                            <button onClick={() => { setShowFollowers(false); router.push(`/profile/${u._id}`); }} className="text-racing-green hover:text-burgundy transition text-left text-sm font-medium">{u.username}</button>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* --- MODAL: FOLLOWING --- */}
+            {showFollowing && (
+                <div className="fixed inset-0 bg-ivory-dark/40 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setShowFollowing(false)}>
+                    <div className="bg-ivory-dark border border-burgundy/40 p-5 rounded-xl w-80 max-h-[70vh] overflow-y-auto shadow-xl" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-lg font-semibold text-racing-green">Following</h2>
+                            <button onClick={() => setShowFollowing(false)} className="text-racing-green hover:text-burgundy transition">
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+                        {following.length === 0 ? <p className="text-sm text-racing-green">Not following anyone yet</p> : (
+                            <ul className="space-y-3">
+                                {following.map((f) => {
+                                    const u = f.followingId;
+                                    if (!u) return null;
+                                    return (
+                                        <li key={u._id} className="flex items-center gap-3">
+                                            <Avatar className="h-9 w-9 border border-burgundy/40">
+                                                <AvatarImage src={u.profile?.avatarUrl} />
+                                                <AvatarFallback className="bg-racing-green text-ivory-dark">{u.username.slice(0, 2).toUpperCase()}</AvatarFallback>
+                                            </Avatar>
+                                            <button onClick={() => { setShowFollowing(false); router.push(`/profile/${u._id}`); }} className="text-racing-green hover:text-burgundy transition text-left text-sm font-medium">{u.username}</button>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default MePage;
+
+/* ── Helper components ── */
+
+function StatusBadge({ status }: { status: string }) {
+    const s = status.toLowerCase();
+    const isShipped = s.includes("ship") || s.includes("on its way");
+    const isDelivered = s.includes("delivered");
+    const isFailed = s.includes("failed") || s.includes("returned");
+    const isAuth = s.includes("authentication") || s.includes("authenticat");
+    const isReady = s.includes("ready") || s.includes("processing");
+
+    const color = isDelivered
+        ? "bg-green-100 text-green-700 border-green-200"
+        : isShipped
+        ? "bg-blue-50 text-blue-600 border-blue-200"
+        : isFailed
+        ? "bg-red-50 text-red-600 border-red-200"
+        : isAuth
+        ? "bg-amber-50 text-amber-600 border-amber-200"
+        : isReady
+        ? "bg-purple-50 text-purple-600 border-purple-200"
+        : "bg-muted text-muted-foreground border-border";
+
+    return (
+        <span className={`inline-flex items-center px-2 py-0.5 rounded-full border text-[9px] font-bold uppercase tracking-wider ${color}`}>
+            {status}
+        </span>
+    );
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+    return (
+        <div className="flex items-start justify-between gap-4 px-4 py-3 bg-card">
+            <p className="text-[9px] uppercase font-bold tracking-widest text-muted-foreground shrink-0 pt-0.5">{label}</p>
+            <p className="text-xs font-medium text-foreground text-right">{value}</p>
+        </div>
+    );
+}
