@@ -1,10 +1,11 @@
 'use client';
 
+import { Suspense } from "react";
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { api } from "@/app/api/api";
 
-const VerifyEmailPage = () => {
+function VerifyEmailContent() {
     const [status, setStatus] = useState("Verifying your email...");
     const [statusClass, setStatusClass] = useState("");
 
@@ -60,6 +61,17 @@ const VerifyEmailPage = () => {
             )}
         </div>
     );
-};
+}
 
-export default VerifyEmailPage;
+export default function VerifyEmailPage() {
+    return (
+        <Suspense fallback={
+            <div className="max-w-md mx-auto mt-20 p-8 bg-white rounded-xl shadow-lg text-center border border-gray-100">
+                <h2 className="text-2xl font-semibold mb-4 text-gray-800">Email Verification</h2>
+                <div className="p-4 rounded-lg bg-gray-50 animate-pulse text-gray-400">Verifying your email...</div>
+            </div>
+        }>
+            <VerifyEmailContent />
+        </Suspense>
+    );
+}

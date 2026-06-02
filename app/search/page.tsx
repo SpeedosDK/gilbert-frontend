@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import type { Product, ApiProduct } from "@/app/components/product/types";
@@ -18,7 +19,7 @@ interface SearchResults {
     users: ApiUser[];
 }
 
-export default function SearchPage() {
+function SearchContent() {
     const searchParams = useSearchParams();
     const q = searchParams.get("q") || "";
 
@@ -153,5 +154,13 @@ export default function SearchPage() {
                 </section>
             )}
         </div>
+    );
+}
+
+export default function SearchPage() {
+    return (
+        <Suspense fallback={<div className="p-4 animate-pulse text-muted-foreground">Loading…</div>}>
+            <SearchContent />
+        </Suspense>
     );
 }

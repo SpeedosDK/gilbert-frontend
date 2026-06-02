@@ -1,24 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { CheckCircle2, Package, ShieldCheck, ArrowRight } from "lucide-react";
 import { Button } from "@/app/components/UI/button";
 
-export default function OrderSuccessPage() {
+function OrderSuccessContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const orderId = searchParams.get("orderId");
-    const [loading, setLoading] = useState(true);
 
-    // We can fetch order details here if we want to show specific info
-    useEffect(() => {
-        if (orderId) {
-            setLoading(false);
-        }
-    }, [orderId]);
-
-    if (loading) {
+    if (!orderId) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-black">
                 <div className="animate-pulse font-mono text-zinc-500 uppercase tracking-[0.3em] text-xs">
@@ -98,5 +90,19 @@ export default function OrderSuccessPage() {
                 </p>
             </div>
         </div>
+    );
+}
+
+export default function OrderSuccessPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-black">
+                <div className="animate-pulse font-mono text-zinc-500 uppercase tracking-[0.3em] text-xs">
+                    Verifying Payment...
+                </div>
+            </div>
+        }>
+            <OrderSuccessContent />
+        </Suspense>
     );
 }

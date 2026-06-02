@@ -1,10 +1,11 @@
 'use client';
 
+import { Suspense } from "react";
 import { useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { api } from "@/app/api/api";
 
-const ResetPasswordPage = () => {
+function ResetPasswordContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
 
@@ -85,6 +86,12 @@ const ResetPasswordPage = () => {
             </button>
         </div>
     );
-};
+}
 
-export default ResetPasswordPage;
+export default function ResetPasswordPage() {
+    return (
+        <Suspense fallback={<div className="max-w-md mx-auto mt-20 p-6 text-center">Loading...</div>}>
+            <ResetPasswordContent />
+        </Suspense>
+    );
+}

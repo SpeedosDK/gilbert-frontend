@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from "react";
 import { useEffect, useState } from "react";
 import { api } from "@/app/api/api";
 import { useAuth } from "@/app/context/AuthContext";
@@ -19,7 +20,7 @@ interface StripeStatus {
     };
 }
 
-export default function PayoutSettings() {
+function PayoutSettingsContent() {
     const { user, checkAuth } = useAuth();
     const searchParams = useSearchParams();
 
@@ -198,5 +199,17 @@ export default function PayoutSettings() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function PayoutSettings() {
+    return (
+        <Suspense fallback={
+            <div className="max-w-3xl mx-auto p-6 pt-24 mb-20 flex justify-center">
+                <Loader2 className="animate-spin text-racing-green" size={32} />
+            </div>
+        }>
+            <PayoutSettingsContent />
+        </Suspense>
     );
 }

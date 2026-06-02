@@ -9,6 +9,7 @@ import Link from "next/link";
 import ProductCard from "@/app/components/product/ProductCard";
 import FilterSidebar, { type ActiveFilters } from "@/app/components/filter/FilterSidebar";
 import type { ApiProduct, Product } from "@/app/components/product/types";
+import { Suspense } from "react";
 
 const mapProduct = (p: ApiProduct): Product => ({
     id: p._id,
@@ -20,7 +21,7 @@ const mapProduct = (p: ApiProduct): Product => ({
     isFavorite: p.isFavorite === true,
 });
 
-export default function FilterPage() {
+function FilterPageContent() {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -244,5 +245,21 @@ export default function FilterPage() {
                 </main>
             </div>
         </div>
+    );
+}
+
+export default function FilterPage() {
+    return (
+        <Suspense fallback={
+            <div className="max-w-7xl mx-auto px-4 pt-6 pb-10">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-10">
+                    {[...Array(8)].map((_, i) => (
+                        <div key={i} className="aspect-[3/4] rounded-lg bg-muted animate-pulse" />
+                    ))}
+                </div>
+            </div>
+        }>
+            <FilterPageContent />
+        </Suspense>
     );
 }

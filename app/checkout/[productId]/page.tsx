@@ -11,12 +11,20 @@ import { Loader2, AlertTriangle, ShieldCheck } from "lucide-react";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
+interface Product {
+    _id: string;
+    title: string;
+    price: number;
+    isLargeItem?: boolean;
+    seller?: { _id: string } | string;
+}
+
 export default function CheckoutPage() {
     const { productId } = useParams();
     const router = useRouter();
     const { user } = useAuth();
 
-    const [product, setProduct] = useState<any>(null);
+    const [product, setProduct] = useState<Product | null>(null);
     const [clientSecret, setClientSecret] = useState("");
     const [orderId, setOrderId] = useState("");
     const [loading, setLoading] = useState(true);
@@ -43,7 +51,8 @@ export default function CheckoutPage() {
         country: "Denmark"
     });
 
-    const isSeller = user && product && (user._id === (product.seller?._id || product.seller));
+    const sellerId = typeof product?.seller === "object" ? product.seller._id : product?.seller;
+    const isSeller = user && product && (user._id === sellerId);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -210,7 +219,7 @@ export default function CheckoutPage() {
                                 <h4 className="text-[10px] uppercase tracking-[0.2em] font-black text-white/40 mb-2">Preferences</h4>
 
                                 {/* Autentificering valg (Kun hvis prisen er under tærsklen på f.eks. 1500) */}
-                                {product?.price < 20000 ? (
+                                {(product?.price ?? 0) < 20000 ? (
                                     <div
                                         onClick={() => setWantsAuthentication(!wantsAuthentication)}
                                         className={`flex items-center justify-between p-5 rounded-2xl border transition-all cursor-pointer ${wantsAuthentication ? 'bg-white border-white' : 'bg-[#16302b] border-white/10 hover:border-white/30'}`}
@@ -273,7 +282,7 @@ export default function CheckoutPage() {
                     ) : (
                         <div className="bg-white p-10 rounded-[3rem] shadow-2xl overflow-hidden">
                             <Elements stripe={stripePromise} options={{ clientSecret }}>
-                                <StripePayment orderId={orderId} clientSecret={clientSecret} />
+                                <StripePayment orderId={orderId} />
                             </Elements>
                         </div>
                     )}
