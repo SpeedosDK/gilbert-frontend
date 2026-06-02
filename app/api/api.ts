@@ -3,7 +3,7 @@
 const PUBLIC_PATHS = ["/", "/products", "/terms", "/about", "/contact"];
 // Client-side: use relative path → goes through Next.js rewrite proxy (no CORS)
 // Server-side: use full backend URL directly
-const API_URL = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL || '');
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 export async function api(path: string, options: RequestInit = {}) {
     const isClient = typeof window !== "undefined";
