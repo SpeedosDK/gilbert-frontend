@@ -1,6 +1,8 @@
-import { API_URL } from "@/app/config";
+// @/app/api/api.ts
 
 const PUBLIC_PATHS = ["/", "/products", "/terms", "/about", "/contact"];
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 export async function api(path: string, options: RequestInit = {}) {
     const isClient = typeof window !== "undefined";
@@ -44,7 +46,6 @@ export async function api(path: string, options: RequestInit = {}) {
 
     return res;
 }
-
 
 function handleFinalLogout() {
     if (typeof window !== "undefined") {
