@@ -65,6 +65,7 @@ function PayoutSettingsContent() {
         if (success) {
             checkAuth();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [success]);
 
     // Vi bestemmer om kontoen findes baseret på enten API svaret ELLER user context
@@ -141,7 +142,7 @@ function PayoutSettingsContent() {
                                                 <div>
                                                     <p className="text-xl font-serif font-bold italic">Stripe Connected</p>
                                                     <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold font-sans">
-                                                        ID: {user?.stripeAccountId || stripeStatus?.account?.id}
+                                                        ID: {String(user?.stripeAccountId || stripeStatus?.account?.id || '')}
                                                     </p>
                                                 </div>
                                             </div>
