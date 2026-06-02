@@ -2,7 +2,7 @@
 
 const PUBLIC_PATHS = ["/", "/products", "/terms", "/about", "/contact"];
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://gilbert-production.up.railway.app';
 
 export async function api(path: string, options: RequestInit = {}) {
     const isClient = typeof window !== "undefined";
