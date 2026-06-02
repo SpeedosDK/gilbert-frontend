@@ -47,12 +47,12 @@ export default function CreateProduct() {
     useEffect(() => {
         async function loadStatic() {
             const endpoints: Record<string, string> = {
-                category: "/api/categories",
-                brand: "/api/brands",
-                gender: "/api/genders",
-                condition: "/api/conditions",
-                color: "/api/colors",
-                material: "/api/materials",
+                category: `${API_URL}/api/categories`,
+                brand: `${API_URL}/api/brands`,
+                gender: `${API_URL}/api/genders`,
+                condition: `${API_URL}/api/conditions`,
+                color: `${API_URL}/api/colors`,
+                material: `${API_URL}/api/materials`,
             };
             for (const [field, url] of Object.entries(endpoints)) {
                 try {
@@ -96,7 +96,7 @@ export default function CreateProduct() {
             try {
                 const genderItem = genders.find(g => g._id === selectedGender);
                 const genderName = genderItem?.name || "";
-                let url = `/api/subcategories?category=${selectedCategory}`;
+                let url = `${API_URL}/api/subcategories?category=${selectedCategory}`;
                 if (genderName) url += `&gender=${encodeURIComponent(genderName)}`;
                 const res = await fetch(url);
                 if (res.ok) setSubcategories(await res.json());
