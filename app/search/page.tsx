@@ -8,7 +8,7 @@ import ProductCard from "@/app/components/product/ProductCard";
 import UserCard from "@/app/components/user/UserCard";
 import { toggleFavorite } from "@/app/api/favorites";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_URL = ''; // relative ? Next.js proxy handles routing to backend
 
 interface ApiUser {
     _id: string;

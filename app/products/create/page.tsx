@@ -5,7 +5,7 @@ import { api } from "@/app/api/api";
 import CustomDropdown from "@/app/components/UI/CustomDropdown";
 import { AlertCircle, Package, Loader2, CheckCircle2 } from "lucide-react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_URL = ''; // relative ? Next.js proxy handles routing to backend
 
 type DropdownItem = { _id: string; name?: string; label?: string; value?: string };
 

@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { PackageSearch, MessageCircle, DollarSign, CheckCircle2, AlertTriangle, Bell } from "lucide-react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_URL = ''; // relative ? Next.js proxy handles routing to backend
 
 interface NotificationItem {
     _id: string;

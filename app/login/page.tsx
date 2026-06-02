@@ -3,7 +3,7 @@ import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_URL = ''; // relative ? Next.js proxy handles routing to backend
 
 function LoginForm() {
     const searchParams = useSearchParams();

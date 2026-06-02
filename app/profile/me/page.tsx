@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { api } from "@/app/api/api";
 import { toggleFavorite } from "@/app/api/favorites";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_URL = ''; // relative ? Next.js proxy handles routing to backend
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/UI/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/app/components/UI/tabs";

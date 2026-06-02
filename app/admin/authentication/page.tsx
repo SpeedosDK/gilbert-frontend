@@ -21,7 +21,7 @@ interface Order {
     authenticationStatus?: string;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_URL = ''; // relative ? Next.js proxy handles routing to backend
 
 export default function AdminAuthenticationPage() {
     const [orders, setOrders] = useState<Order[]>([]);

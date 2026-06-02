@@ -10,7 +10,7 @@ import { useAuth } from "@/app/context/AuthContext";
 import { Loader2, AlertTriangle, ShieldCheck } from "lucide-react";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_URL = ''; // relative → Next.js proxy handles routing to backend
 
 interface Product {
     _id: string;

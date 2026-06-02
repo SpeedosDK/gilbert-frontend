@@ -38,7 +38,7 @@ export default function NewBlogPost() {
                 formData.append("image", image);
             }
 
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/blogs`, {
+            const res = await fetch(`/api/blogs`, {
                 method: "POST",
                 body: formData, // Ingen headers nødvendige, fetch ordner det selv
             });

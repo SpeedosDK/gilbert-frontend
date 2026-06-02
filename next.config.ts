@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const BACKEND_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 // Extract hostname safely for remotePatterns
 let backendHostname = 'localhost';

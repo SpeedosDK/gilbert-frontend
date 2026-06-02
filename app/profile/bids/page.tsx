@@ -6,7 +6,7 @@ import { useAuth } from "@/app/context/AuthContext";
 import { Gavel, ArrowUpRight, ArrowDownLeft, Loader2, ChevronRight, Inbox } from "lucide-react";
 import Link from "next/link";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_URL = ''; // relative ? Next.js proxy handles routing to backend
 
 interface Bid {
     _id: string;

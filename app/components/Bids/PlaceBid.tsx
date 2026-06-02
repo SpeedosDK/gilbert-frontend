@@ -5,7 +5,7 @@ import { Gavel, AlertCircle, ArrowUp } from "lucide-react";
 import { Button } from "@/app/components/UI/button";
 import { Input } from "@/app/components/UI/input";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_URL = ''; // relative ? Next.js proxy handles routing to backend
 
 interface PlaceBidProps {
     productId: string;

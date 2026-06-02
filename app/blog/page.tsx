@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Loader2, ArrowRight, ChevronLeft, ChevronRight, Pin } from "lucide-react";
 
 const POSTS_PER_PAGE = 6;
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_URL = ''; // relative ? Next.js proxy handles routing to backend
 
 interface BlogPost {
     _id: string;
