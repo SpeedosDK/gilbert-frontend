@@ -9,9 +9,7 @@ const PUBLIC_PATHS = ["/", "/products", "/terms", "/about", "/contact"];
 //  - vi undgår CORS helt
 // Ved server-side rendering (ingen window) kalder vi backend direkte.
 const SERVER_API_URL =
-    process.env.API_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
-    "http://localhost:3000";
+    process.env.NEXT_PUBLIC_API_URL
 
 function getBaseUrl() {
     return typeof window !== "undefined" ? "" : SERVER_API_URL;
