@@ -2,7 +2,20 @@
 
 const PUBLIC_PATHS = ["/", "/products", "/terms", "/about", "/contact"];
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://gilbert-production.up.railway.app';
+// I browseren bruger vi RELATIVE URL'er, så alle /api-kald går gennem
+// Next.js' rewrite-proxy (se next.config.ts). Det gør requests same-origin
+// (frontend-domænet), så:
+//  - cookies bliver førsteparts (middleware kan læse dem, browsere blokerer ikke)
+//  - vi undgår CORS helt
+// Ved server-side rendering (ingen window) kalder vi backend direkte.
+const SERVER_API_URL =
+    process.env.API_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:3000";
+
+function getBaseUrl() {
+    return typeof window !== "undefined" ? "" : SERVER_API_URL;
+}
 
 export async function api(path: string, options: RequestInit = {}) {
     const isClient = typeof window !== "undefined";
@@ -12,6 +25,7 @@ export async function api(path: string, options: RequestInit = {}) {
         headers.set("Content-Type", "application/json");
     }
 
+    const API_URL = getBaseUrl();
     const fullUrl = `${API_URL}${path}`;
 
     let res = await fetch(fullUrl, {
