@@ -3,13 +3,13 @@
 const PUBLIC_PATHS = ["/", "/products", "/terms", "/about", "/contact"];
 
 // I browseren bruger vi RELATIVE URL'er, så alle /api-kald går gennem
-// Next.js' rewrite-proxy (se next.config.ts). Det gør requests same-origin
-// (frontend-domænet), så:
-//  - cookies bliver førsteparts (middleware kan læse dem, browsere blokerer ikke)
-//  - vi undgår CORS helt
-// Ved server-side rendering (ingen window) kalder vi backend direkte.
+// Next.js' rewrite-proxy (se next.config.ts). Requests bliver same-origin
+// (frontend-domænet), så cookies bliver førsteparts og vi undgår CORS.
+// Ved SSR (ingen window) kalder vi backend direkte.
 const SERVER_API_URL =
-    process.env.NEXT_PUBLIC_API_URL
+    process.env.API_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "https://gilbert-production.up.railway.app";
 
 function getBaseUrl() {
     return typeof window !== "undefined" ? "" : SERVER_API_URL;
