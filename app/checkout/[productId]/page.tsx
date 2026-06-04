@@ -14,6 +14,9 @@ const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 const API_URL = ''; // relative → Next.js proxy handles routing to backend
 
+// Over denne pris er authentication påkrævet (skal matche AUTH_THRESHOLD i backend).
+const AUTH_THRESHOLD = 5000;
+
 interface Product {
     _id: string;
     title: string;
@@ -68,7 +71,7 @@ export default function CheckoutPage() {
                 setAmounts(prev => ({ ...prev, productPrice: prod.price, total: prod.price }));
 
                 // Hvis varen er dyr, kan vi for-vælge autentificering visuelt
-                if (prod.price >= 20000) {
+                if (prod.price >= AUTH_THRESHOLD) {
                     setWantsAuthentication(true);
                 }
             }
@@ -146,10 +149,16 @@ export default function CheckoutPage() {
     const handleCancelPayment = useCallback(async () => {
         if (orderId) {
             try {
-                await fetch(`${API_URL}/api/orders/${orderId}/cancel`, {
+                const res = await fetch(`${API_URL}/api/orders/${orderId}/cancel`, {
                     method: "POST",
                     credentials: "include",
                 });
+                if (!res.ok) {
+                    const data = await res.json().catch(() => ({}));
+                    console.error("Cancel fejlede:", res.status, data);
+                } else {
+                    console.log("Ordre annulleret og slettet.");
+                }
             } catch (err) {
                 console.error("Kunne ikke annullere ordre:", err);
             }
@@ -248,8 +257,8 @@ export default function CheckoutPage() {
                             <div className="bg-black/20 p-8 rounded-[2.5rem] border border-white/10 space-y-4">
                                 <h4 className="text-[10px] uppercase tracking-[0.2em] font-black text-white/40 mb-2">Preferences</h4>
 
-                                {/* Autentificering valg (Kun hvis prisen er under tærsklen på f.eks. 1500) */}
-                                {(product?.price ?? 0) < 20000 ? (
+                                {/* Autentificering valg (Kun hvis prisen er under tærsklen) */}
+                                {(product?.price ?? 0) < AUTH_THRESHOLD ? (
                                     <div
                                         onClick={() => setWantsAuthentication(!wantsAuthentication)}
                                         className={`flex items-center justify-between p-5 rounded-2xl border transition-all cursor-pointer ${wantsAuthentication ? 'bg-white border-white' : 'bg-[#16302b] border-white/10 hover:border-white/30'}`}
