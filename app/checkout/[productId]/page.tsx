@@ -141,6 +141,33 @@ export default function CheckoutPage() {
         setIsPreparing(false);
     };
 
+    // Annullér en oprettet (ubetalt) ordre hvis brugeren fortryder betalingen,
+    // så den ikke efterlades som 'pending' i databasen.
+    const handleCancelPayment = useCallback(async () => {
+        if (orderId) {
+            try {
+                await fetch(`${API_URL}/api/orders/${orderId}/cancel`, {
+                    method: "POST",
+                    credentials: "include",
+                });
+            } catch (err) {
+                console.error("Kunne ikke annullere ordre:", err);
+            }
+        }
+        setClientSecret("");
+        setOrderId("");
+    }, [orderId]);
+
+    // Hvis brugeren lukker fanen/navigerer væk midt i betalingen, så ryd op.
+    useEffect(() => {
+        if (!orderId || !clientSecret) return;
+        const handleUnload = () => {
+            navigator.sendBeacon?.(`${API_URL}/api/orders/${orderId}/cancel`);
+        };
+        window.addEventListener("beforeunload", handleUnload);
+        return () => window.removeEventListener("beforeunload", handleUnload);
+    }, [orderId, clientSecret]);
+
     if (loading) return <div className="min-h-screen bg-[#003d2b] flex items-center justify-center text-white italic font-serif">Accessing the vault...</div>;
 
     if (isSeller) {
@@ -285,9 +312,17 @@ export default function CheckoutPage() {
                     ) : (
                         <div className="bg-white p-10 rounded-[3rem] shadow-2xl overflow-hidden">
                             {stripePromise ? (
-                                <Elements stripe={stripePromise} options={{ clientSecret }}>
-                                    <StripePayment orderId={orderId} />
-                                </Elements>
+                                <>
+                                    <Elements stripe={stripePromise} options={{ clientSecret }}>
+                                        <StripePayment orderId={orderId} />
+                                    </Elements>
+                                    <button
+                                        onClick={handleCancelPayment}
+                                        className="mt-6 w-full text-center text-xs font-black uppercase tracking-[0.2em] text-black/40 hover:text-black transition"
+                                    >
+                                        ← Cancel and go back
+                                    </button>
+                                </>
                             ) : (
                                 <div className="text-center space-y-3 text-black">
                                     <AlertTriangle className="mx-auto text-red-500" size={32} />
