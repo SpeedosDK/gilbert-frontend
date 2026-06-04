@@ -9,7 +9,9 @@ import { Button } from "@/app/components/UI/button";
 import { useAuth } from "@/app/context/AuthContext";
 import { Loader2, AlertTriangle, ShieldCheck } from "lucide-react";
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 const API_URL = ''; // relative → Next.js proxy handles routing to backend
 
 interface Product {
@@ -282,9 +284,19 @@ export default function CheckoutPage() {
                         </div>
                     ) : (
                         <div className="bg-white p-10 rounded-[3rem] shadow-2xl overflow-hidden">
-                            <Elements stripe={stripePromise} options={{ clientSecret }}>
-                                <StripePayment orderId={orderId} />
-                            </Elements>
+                            {stripePromise ? (
+                                <Elements stripe={stripePromise} options={{ clientSecret }}>
+                                    <StripePayment orderId={orderId} />
+                                </Elements>
+                            ) : (
+                                <div className="text-center space-y-3 text-black">
+                                    <AlertTriangle className="mx-auto text-red-500" size={32} />
+                                    <p className="font-black uppercase text-sm tracking-widest">Payment unavailable</p>
+                                    <p className="text-xs text-black/60 italic">
+                                        Stripe is not configured (missing publishable key). Please contact support.
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
