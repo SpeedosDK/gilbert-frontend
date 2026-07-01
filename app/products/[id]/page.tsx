@@ -148,10 +148,12 @@ const ProductDetailsPage = () => {
     if (!state.product) return <div className="p-20 text-center">Product not found.</div>;
 
     const { product, isFavorite, similarProducts } = state;
+    // Show the review banner only for products still awaiting approval
+    const isInReview = product.status === "In Review";
 
     return (
         <div className="max-w-6xl mx-auto px-4 pb-16 min-h-screen">
-            {isPreviewAdmin && (
+            {isInReview && (
                 <div className="my-4 px-4 py-3 rounded-xl bg-yellow-600/20 border border-yellow-500/40 text-yellow-200 text-sm flex items-center gap-2">
                     <span className="font-bold uppercase tracking-wider text-xs">Admin Preview</span>
                     <span className="text-yellow-200/70">— This product has not been approved yet. Purchase actions are disabled.</span>
@@ -228,7 +230,7 @@ const ProductDetailsPage = () => {
                     </div>
 
                     <div className="space-y-3 pt-4">
-                        {isPreviewAdmin ? (
+                        {isInReview ? (
                             <div className="px-4 py-3 rounded-xl bg-yellow-600/10 border border-yellow-500/30 text-yellow-200/70 text-sm text-center">
                                 Purchase actions are disabled in admin preview mode.
                             </div>

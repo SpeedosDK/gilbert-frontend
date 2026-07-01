@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "@/app/api/api";
 import { ChevronLeft, ChevronRight, ExternalLink, Check, Clock, X, CreditCard } from "lucide-react";
@@ -15,7 +15,7 @@ const STATUS_STYLES: Record<string, string> = {
     "Sold": "bg-blue-600/40 text-blue-200 border border-blue-500/60",
 };
 
-const STATUS_ICONS: Record<string, any> = {
+const STATUS_ICONS: Record<string, React.ElementType> = {
     "Approved": Check,
     "In Review": Clock,
     "Rejected": X,
@@ -34,7 +34,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function buildProductLink(p: ApiProduct): string {
-    if (p.status === "In Review" || p.status === "Rejected") {
+    if (p.status !== "Approved") {
         return `/products/${p._id}?preview=admin`;
     }
     return `/products/${p._id}`;
