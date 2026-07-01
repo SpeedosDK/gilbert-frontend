@@ -1,9 +1,24 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { api } from "@/app/api/api";
+import { Heart } from "lucide-react";
 import Link from "next/link";
-import type { ApiProduct } from "@/app/components/product/types";
+import { api } from "@/app/api/api";
+import { toggleFavorite } from "@/app/api/favorites";
+import ProductCard from "@/app/components/product/ProductCard";
+import type { ApiProduct, Product } from "@/app/components/product/types";
+
+const mapProduct = (p: ApiProduct): Product => ({
+    id: p._id,
+    title: p.title,
+    brand: typeof p.brand === "object" && p.brand !== null ? p.brand.name : "",
+    price: p.price,
+    imageUrl: p.images?.[0] || "/images/ImagePlaceholder.jpg",
+    isFavorite: true,
+    seller: {
+        rating: p.seller?.stats?.ratingAverage ?? p.seller?.rating,
+    },
+});
 
 export default function FavoritesPage() {
     const [favorites, setFavorites] = useState<ApiProduct[]>([]);
@@ -32,52 +47,60 @@ export default function FavoritesPage() {
         load();
     }, []);
 
+    const handleToggleFavorite = async (id: string) => {
+        const ok = await toggleFavorite(id);
+        if (ok !== undefined) {
+            setFavorites((prev) => prev.filter((p) => String(p._id) !== id));
+        }
+    };
+
     if (loading) {
-        return <p className="text-center mt-20">Loading favorites…</p>;
-    }
-
-    if (error) {
-        return <p className="text-center mt-20 text-red-600">{error}</p>;
-    }
-
-    if (favorites.length === 0) {
-        return (
-            <div className="text-center mt-20">
-                <h1 className="text-2xl font-semibold mb-4">My Favorites</h1>
-                <p className="text-gray-600">You don&#39;t have any favorites yet.</p>
-                <Link href="/" className="text-blue-600 underline mt-4 inline-block">
-                    Go shopping
-                </Link>
-            </div>
-        );
+        return <div className="max-w-6xl mx-auto px-4 min-h-screen" />;
     }
 
     return (
-        <div className="max-w-5xl mx-auto mt-10 px-4">
-            <h1 className="text-2xl font-semibold mb-6">My Favorites</h1>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {favorites.map((product) => (
-                    <Link
-                        key={product._id}
-                        href={`/products/${product._id}`}
-                        className="block border rounded-lg overflow-hidden shadow hover:shadow-lg transition"
-                    >
-                        <div className="aspect-square bg-gray-100">
-                            <img
-                                src={product.images?.[0] || "/images/ImagePlaceholder.jpg"}
-                                alt={product.title}
-                                className="w-full h-full object-cover"
-                            />
-                        </div>
-
-                        <div className="p-2">
-                            <div className="font-medium truncate">{product.title}</div>
-                            <div className="text-sm text-gray-700">{product.price} kr.</div>
-                        </div>
-                    </Link>
-                ))}
+        <div className="max-w-6xl mx-auto px-4 pb-16 min-h-screen">
+            <div className="pt-10 pb-8 border-b border-border/30">
+                <div className="flex items-center gap-3">
+                    <Heart className="h-6 w-6 fill-accent text-accent" />
+                    <h1 className="text-3xl font-serif leading-tight">My favorites</h1>
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                    {favorites.length > 0
+                        ? `${favorites.length} ${favorites.length === 1 ? "item" : "items"} saved`
+                        : "Items you save will appear here."}
+                </p>
             </div>
+
+            {error ? (
+                <p className="text-center mt-20 text-red-400">{error}</p>
+            ) : favorites.length === 0 ? (
+                <div className="flex flex-col items-center justify-center text-center py-24">
+                    <div className="h-16 w-16 rounded-full bg-muted/40 flex items-center justify-center mb-5">
+                        <Heart className="h-7 w-7 text-muted-foreground" />
+                    </div>
+                    <h2 className="text-xl font-serif mb-2">No favorites yet</h2>
+                    <p className="text-sm text-muted-foreground max-w-sm mb-6">
+                        Tap the heart on any item to save it here for later.
+                    </p>
+                    <Link
+                        href="/"
+                        className="px-6 h-12 inline-flex items-center rounded-2xl bg-foreground text-background text-sm font-bold hover:opacity-80 transition"
+                    >
+                        Start shopping
+                    </Link>
+                </div>
+            ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-8">
+                    {favorites.map((p) => (
+                        <ProductCard
+                            key={p._id}
+                            product={mapProduct(p)}
+                            onToggleFavorite={handleToggleFavorite}
+                        />
+                    ))}
+                </div>
+            )}
         </div>
     );
 }
