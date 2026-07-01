@@ -44,7 +44,7 @@ export default function FavoritesPage() {
         return (
             <div className="text-center mt-20">
                 <h1 className="text-2xl font-semibold mb-4">My Favorites</h1>
-                <p className="text-gray-600">You don't have any favorites yet.</p>
+                <p className="text-gray-600">You don&#39;t have any favorites yet.</p>
                 <Link href="/" className="text-blue-600 underline mt-4 inline-block">
                     Go shopping
                 </Link>
