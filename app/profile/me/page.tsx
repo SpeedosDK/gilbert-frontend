@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api } from "@/app/api/api";
@@ -10,7 +10,7 @@ const API_URL = ''; // relative ? Next.js proxy handles routing to backend
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/UI/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/app/components/UI/tabs";
-import { Settings, X, ArrowRight, CreditCard, ShieldCheck, AlertCircle, Download, ExternalLink } from "lucide-react";
+import { Settings, X, ArrowRight, CreditCard, ShieldCheck, AlertCircle, Download, ExternalLink, Camera, Loader2 } from "lucide-react";
 import { Button } from "@/app/components/UI/button";
 
 import {
@@ -80,6 +80,49 @@ const MePage = () => {
 
     // State for viewing sale details
     const [selectedSale, setSelectedSale] = useState<OrderItem | null>(null);
+
+    // Avatar upload
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+    async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0];
+        e.target.value = ""; // allow re-selecting the same file
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            alert("Please choose an image file.");
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            alert("The image must be smaller than 5 MB.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("avatar", file);
+
+        setUploadingAvatar(true);
+        try {
+            const res = await api("/api/users/me/avatar", {
+                method: "POST",
+                body: formData,
+            });
+            const json = await res.json();
+            if (!res.ok || !json.success) {
+                alert(json.message || "Failed to upload profile picture.");
+                return;
+            }
+            const newAvatarUrl: string = json.data;
+            setUser((prev) =>
+                prev ? { ...prev, profile: { ...prev.profile, avatarUrl: newAvatarUrl } } : prev
+            );
+        } catch {
+            alert("Something went wrong while uploading your profile picture.");
+        } finally {
+            setUploadingAvatar(false);
+        }
+    }
 
     // Status logic for Seller
     const getSellerDisplayStatus = (item: OrderItem) => {
@@ -220,12 +263,35 @@ const MePage = () => {
         <div className="px-4 py-6 max-w-5xl mx-auto">
             {/* --- PROFILE HEADER --- */}
             <div className="flex items-start gap-4 mb-4">
-                <Avatar className="h-20 w-20 border-2 border-border/30">
-                    <AvatarImage src={user.profile?.avatarUrl || ""} alt={user.username} />
-                    <AvatarFallback className="bg-muted text-muted-foreground text-lg font-serif">
-                        {initials}
-                    </AvatarFallback>
-                </Avatar>
+                <button
+                    type="button"
+                    onClick={() => !uploadingAvatar && fileInputRef.current?.click()}
+                    className="relative group rounded-full flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-burgundy/50"
+                    aria-label="Change profile picture"
+                    title="Change profile picture"
+                >
+                    <Avatar className="h-20 w-20 border-2 border-border/30">
+                        <AvatarImage src={user.profile?.avatarUrl || ""} alt={user.username} />
+                        <AvatarFallback className="bg-muted text-muted-foreground text-lg font-serif">
+                            {initials}
+                        </AvatarFallback>
+                    </Avatar>
+                    <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Camera className="h-6 w-6 text-white" />
+                    </span>
+                    {uploadingAvatar && (
+                        <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/45">
+                            <Loader2 className="h-6 w-6 text-white animate-spin" />
+                        </span>
+                    )}
+                </button>
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarChange}
+                />
 
                 <div className="flex-1 pt-1">
                     <div className="flex items-center gap-6 mb-2">
