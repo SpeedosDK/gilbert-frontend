@@ -61,7 +61,11 @@ const ProductDetailsPage = () => {
                 if (favRes.status === "fulfilled" && favRes.value.ok) {
                     const favData = await favRes.value.json();
                     if (favData.success) {
-                        favoriteIds = new Set((favData.favorites || []).map((f: { _id: string }) => String(f._id)));
+                        favoriteIds = new Set(
+                            (favData.favorites || [])
+                                .filter((f: { _id?: string } | null) => f?._id)
+                                .map((f: { _id: string }) => String(f._id))
+                        );
                     }
                 }
 

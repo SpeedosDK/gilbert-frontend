@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { api } from "@/app/api/api";
 import Link from "next/link";
+import type { ApiProduct } from "@/app/components/product/types";
 
 export default function FavoritesPage() {
-    const [favorites, setFavorites] = useState<any[]>([]);
+    const [favorites, setFavorites] = useState<ApiProduct[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
@@ -20,7 +21,7 @@ export default function FavoritesPage() {
                     return;
                 }
 
-                setFavorites(data.favorites || []);
+                setFavorites((data.favorites || []).filter(Boolean));
             } catch {
                 setError("Server error.");
             } finally {
