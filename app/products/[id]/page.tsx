@@ -38,13 +38,11 @@ const ProductDetailsPage = () => {
 
     const [selectedImage, setSelectedImage] = useState(0);
     const [isChatOpen, setIsChatOpen] = useState(false);
-    const [isPreviewAdmin, setIsPreviewAdmin] = useState(false);
-
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            setIsPreviewAdmin(new URL(window.location.href).searchParams.get('preview') === 'admin');
-        }
-    }, []);
+    const [isPreviewAdmin, setIsPreviewAdmin] = useState(() =>
+        typeof window !== 'undefined'
+            ? new URL(window.location.href).searchParams.get('preview') === 'admin'
+            : false
+    );
 
     useEffect(() => {
         let cancelled = false;
@@ -69,7 +67,12 @@ const ProductDetailsPage = () => {
 
                 if (productRes.status === "fulfilled" && productRes.value.ok) {
                     const data = await productRes.value.json();
-                    const p = data.product || data;
+                    const p = data.product ?? data.data ?? (data._id ? data : null);
+
+                    if (!p?._id) {
+                        if (!cancelled) setState(prev => ({ ...prev, loading: false }));
+                        return;
+                    }
 
                     const params = new URLSearchParams();
                     if (p.brand?._id) params.set("brands", p.brand._id);

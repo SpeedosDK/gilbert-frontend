@@ -30,14 +30,14 @@ export default function ProductPicker({ selectedIds, onSelectionChange }: Props)
     const toggleProduct = (id: string) => {
         if (selectedIds.includes(id)) {
             onSelectionChange(selectedIds.filter(item => item !== id));
-        } else if (selectedIds.length < 50) {
+        } else if (selectedIds.length < 200) {
             onSelectionChange([...selectedIds, id]);
         } else {
-            alert("You can only select up to 50 products.");
+            alert("You can only select up to 200 products.");
         }
     };
 
-    const getBrandName = (brand: any) => {
+    const getBrandName = (brand: ApiProduct["brand"]) => {
         if (!brand) return "Unknown Brand";
         if (typeof brand === 'string') return brand;
         return brand.name || "Unknown Brand";
@@ -50,7 +50,7 @@ export default function ProductPicker({ selectedIds, onSelectionChange }: Props)
 
     return (
         <div className="border border-gray-300 p-5 rounded-xl bg-white shadow-sm">
-            <h3 className="text-lg font-bold mb-3 text-black">Select Related Products (Max 50)</h3>
+            <h3 className="text-lg font-bold mb-3 text-black">Select Related Products (Max 200)</h3>
 
             <input
                 type="text"
@@ -99,9 +99,9 @@ export default function ProductPicker({ selectedIds, onSelectionChange }: Props)
 
             <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
                 <span className="text-sm font-semibold text-black">
-                    Selected: {selectedIds.length} / 50
+                    Selected: {selectedIds.length} / 200
                 </span>
-                {selectedIds.length === 50 && (
+                {selectedIds.length === 200 && (
                     <span className="text-[10px] text-gray-400 uppercase font-bold tracking-tight">Limit reached</span>
                 )}
             </div>

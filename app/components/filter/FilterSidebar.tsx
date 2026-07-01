@@ -237,7 +237,7 @@ export default function FilterSidebar({ filters, onChange, mobileOpen = false, o
 
     return (
         <>
-            <aside className="hidden md:block w-64 shrink-0 sticky top-24 self-start max-h-[calc(100vh-120px)]">
+            <aside className="hidden md:block w-64 shrink-0 sticky top-24 self-start max-h-[calc(100vh-7rem)] overflow-y-auto custom-scrollbar">
                 {buildContent("desktop")}
             </aside>
 

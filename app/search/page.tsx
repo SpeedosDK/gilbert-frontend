@@ -114,8 +114,8 @@ function SearchContent() {
     }, [q]);
 
     return (
-        <div className="p-4">
-            <h1 className="text-xl font-semibold mb-4">Search results for &ldquo;{q}&rdquo;</h1>
+        <div className="max-w-7xl mx-auto px-4 pt-28 pb-16">
+            <h1 className="text-2xl font-semibold mb-8">Search results for &ldquo;{q}&rdquo;</h1>
 
             {loading && <p className="text-muted-foreground animate-pulse">Loading…</p>}
 
@@ -125,8 +125,8 @@ function SearchContent() {
 
             {/* USERS */}
             {results.users.length > 0 && (
-                <section className="mb-6">
-                    <h2 className="text-lg font-semibold mb-2">Users</h2>
+                <section className="mb-10">
+                    <h2 className="text-lg font-semibold mb-4">Users</h2>
                     <div className="grid grid-cols-1 gap-3">
                         {results.users.map((u) => (
                             <UserCard
@@ -143,7 +143,7 @@ function SearchContent() {
             {/* PRODUCTS */}
             {results.products.length > 0 && (
                 <section>
-                    <h2 className="text-lg font-semibold mb-2">Products</h2>
+                    <h2 className="text-lg font-semibold mb-4">Products</h2>
                     <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-4">
                         {results.products.map((product) => (
                             <ProductCard

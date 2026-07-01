@@ -2,6 +2,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
+interface RelatedProduct {
+    _id: string;
+    title: string;
+    price: number;
+    images?: string[];
+}
+
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params;
 
@@ -17,7 +24,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         </div>
     );
 
-    const getProductImageUrl = (img: string) => {
+    const getProductImageUrl = (img: string | undefined) => {
         if (!img) return '/placeholder.jpg';
         if (img.startsWith('http')) return img;
         if (img.startsWith('/api/images/products/')) return `${baseUrl}${img}`;
@@ -108,7 +115,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                         </div>
 
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
-                            {post.relatedProducts.map((product: any) => (
+                            {post.relatedProducts.map((product: RelatedProduct) => (
                                 <Link href={`/products/${product._id}`} key={product._id} className="group">
                                     <div className="relative aspect-[3/4] mb-2 md:mb-3 bg-[hsl(var(--card))] overflow-hidden border border-[hsl(var(--foreground)/0.08)]">
                                         <Image
