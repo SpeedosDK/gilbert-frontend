@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Search, X } from "lucide-react";
+import { Bell, Heart, Search, X } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/app/components/UI/button";
@@ -173,6 +173,18 @@ const TopBar = () => {
                         ) : (
                             <Link href="/login" className="hidden md:block text-sm font-medium text-foreground">Login</Link>
                         )
+                    )}
+
+                    {user && (
+                        <Link href="/favorites" aria-label="Favorites" className="hidden md:inline-flex">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-foreground hover:bg-muted"
+                            >
+                                <Heart className="h-5 w-5" />
+                            </Button>
+                        </Link>
                     )}
 
                     <div className="relative" ref={dropdownRef}>
