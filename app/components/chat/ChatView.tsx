@@ -2,6 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { useAuth } from "@/app/context/AuthContext";
 import { Send, Gavel, CheckCircle2, Loader2, X, Clock } from "lucide-react";
 import { Button } from "@/app/components/UI/button";
@@ -24,7 +25,7 @@ interface ActiveBid {
 
 interface ChatThread {
     _id?: string;
-    productId?: { title?: string; price?: number; images?: string[] };
+    productId?: { _id?: string; title?: string; price?: number; images?: string[] };
     sellerId?: { _id: string };
     buyerId?: { _id: string };
 }
@@ -180,21 +181,24 @@ const ChatView = ({ threadId, isModal = false }: ChatViewProps) => {
             {/* HEADER (Only shown if not in modal) */}
             {!isModal && (
                 <div className="p-6 border-b border-white/10 bg-[#0a1f1a] flex justify-between items-center">
-                    <div className="flex items-center gap-4">
+                    <Link
+                        href={thread?.productId?._id ? `/products/${thread.productId._id}` : "#"}
+                        className="flex items-center gap-4 group transition-opacity hover:opacity-80"
+                    >
                         <div className="h-12 w-12 bg-[#16302b] rounded-2xl overflow-hidden border border-white/10 shadow-lg">
                             {thread?.productId?.images?.[0] && (
                                 <img src={thread.productId.images[0]} className="h-full w-full object-cover" alt="Product" />
                             )}
                         </div>
                         <div>
-                            <h2 className="text-[ivory] text-sm font-bold uppercase tracking-tight mb-0.5">
+                            <h2 className="text-[ivory] text-sm font-bold uppercase tracking-tight mb-0.5 group-hover:underline underline-offset-2">
                                 {thread?.productId?.title || "Loading..."}
                             </h2>
                             <p className="text-[10px] text-[#800020] font-black uppercase tracking-widest">
                                 {thread?.productId?.price} DKK
                             </p>
                         </div>
-                    </div>
+                    </Link>
                 </div>
             )}
 
