@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
     MessageCircle, ArrowLeft, X, Heart, Share2,
-    ChevronRight
+    ChevronRight, Pencil
 } from "lucide-react";
 
 import { Button } from "@/app/components/UI/button";
@@ -234,6 +234,13 @@ const ProductDetailsPage = () => {
                     </div>
 
                     <div className="space-y-3 pt-4">
+                        {user && String(user._id) === String(product.seller?._id) && (
+                            <Link href={`/products/${product._id}/edit`}>
+                                <Button variant="outline" className="w-full h-12 rounded-2xl font-bold flex items-center justify-center gap-2">
+                                    <Pencil className="h-4 w-4" /> Edit listing
+                                </Button>
+                            </Link>
+                        )}
                         {isInReview ? (
                             <div className="px-4 py-3 rounded-xl bg-yellow-600/10 border border-yellow-500/30 text-yellow-200/70 text-sm text-center">
                                 Purchase actions are disabled in admin preview mode.
