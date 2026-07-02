@@ -396,7 +396,7 @@ export default function CheckoutPage() {
                             <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center shrink-0">
                                 <span className="font-serif">i</span>
                             </div>
-                            <p>Every item in the vault undergoes manual authentication before it reaches your hands. Secure logistics and insurance included.</p>
+                            <p>Every item that has authentication enable undergoes manual authentication before it reaches your hands. Secure logistics and insurance included.</p>
                         </div>
                     </div>
                 </div>
