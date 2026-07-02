@@ -88,7 +88,7 @@ const ProductDetailsPage = () => {
                         const simRes = await api(`/api/products/filter?${params.toString()}`);
                         if (simRes.ok) {
                             const simData = await simRes.json();
-                            similar = (simData.products || simData.data || [])
+                            similar = (Array.isArray(simData) ? simData : (simData.products || simData.data || []))
                                 .filter((sp: ProductItem) => sp._id !== p._id)
                                 .slice(0, 4)
                                 .map((sp: ProductItem) => ({ ...sp, isFavorite: favoriteIds.has(String(sp._id)) }));
@@ -276,7 +276,7 @@ const ProductDetailsPage = () => {
                         <div className="flex items-center gap-4">
                             <Avatar className="h-12 w-12">
                                 <AvatarImage src={product.seller?.profile?.avatarUrl} />
-                                <AvatarFallback>{product.seller?.username?.slice(0,2).toUpperCase()}</AvatarFallback>
+                                <AvatarFallback>{(product.seller?.username?.slice(0,2) ?? '??').toUpperCase()}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
                                 <p className="text-sm font-bold">{product.seller?.username || "Anonymous seller"}</p>
