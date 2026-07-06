@@ -171,22 +171,11 @@ const ProductDetailsPage = () => {
     const isApproved = product.status === "Approved";
     const isInReview = product.status === "In Review";
     const isRejected = product.status === "Rejected";
+    const isSold = product.status === "Sold";
     const isPendingOrRejected = isInReview || isRejected;
 
     return (
         <div className="max-w-6xl mx-auto px-4 pb-16 min-h-screen">
-            {isInReview && (
-                <div className="my-4 px-4 py-3 rounded-xl bg-yellow-600/20 border border-yellow-500/40 text-yellow-200 text-sm flex items-center gap-2">
-                    <span className="font-bold uppercase tracking-wider text-xs">In Review</span>
-                    <span className="text-yellow-200/70">— This product is awaiting approval. Purchase actions are disabled.</span>
-                </div>
-            )}
-            {isRejected && (
-                <div className="my-4 px-4 py-3 rounded-xl bg-red-600/20 border border-red-500/40 text-red-200 text-sm flex items-center gap-2">
-                    <span className="font-bold uppercase tracking-wider text-xs">Rejected</span>
-                    <span className="text-red-200/70">— This listing was not approved. You can delete it below.</span>
-                </div>
-            )}
             <nav className="flex items-center gap-1.5 text-xs text-muted-foreground py-4 mb-2">
                 <button onClick={() => router.back()} className="flex items-center gap-1 hover:text-foreground transition-colors">
                     <ArrowLeft className="h-3 w-3" /> Back
@@ -198,6 +187,25 @@ const ProductDetailsPage = () => {
                     </Link>
                 )}
             </nav>
+
+            {isInReview && (
+                <div className="mb-4 px-4 py-3 rounded-xl bg-yellow-600/20 border border-yellow-500/40 text-yellow-200 text-sm flex items-center gap-2">
+                    <span className="font-bold uppercase tracking-wider text-xs">In Review</span>
+                    <span className="text-yellow-200/70">— This product is awaiting approval. Purchase actions are disabled.</span>
+                </div>
+            )}
+            {isRejected && (
+                <div className="mb-4 px-4 py-3 rounded-xl bg-red-600/20 border border-red-500/40 text-red-200 text-sm flex items-center gap-2">
+                    <span className="font-bold uppercase tracking-wider text-xs">Rejected</span>
+                    <span className="text-red-200/70">— This listing was not approved. You can delete it below.</span>
+                </div>
+            )}
+            {isSold && (
+                <div className="mb-4 px-4 py-3 rounded-xl bg-muted/60 border border-border/40 text-muted-foreground text-sm flex items-center gap-2">
+                    <span className="font-bold uppercase tracking-wider text-xs text-foreground">Sold</span>
+                    <span>— This item has already been sold and is no longer available for purchase.</span>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
                 <div className="space-y-4">
@@ -275,7 +283,7 @@ const ProductDetailsPage = () => {
                                 <Trash2 className="h-4 w-4" /> Delete listing
                             </Button>
                         )}
-                        {isPendingOrRejected ? (
+                        {isPendingOrRejected || isSold ? (
                             <div className="px-4 py-3 rounded-xl bg-yellow-600/10 border border-yellow-500/30 text-yellow-200/70 text-sm text-center">
                                 Purchase actions are disabled for this listing.
                             </div>
