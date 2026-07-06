@@ -195,7 +195,7 @@ export default function MegaNav() {
                     onMouseLeave={handleLeave}
                 >
                     <div className="bg-popover border border-border/50 rounded-lg shadow-xl w-full max-w-5xl mt-1 flex flex-col max-h-[80vh]">
-                        <div className="overflow-y-auto flex-1 p-4 md:p-6">
+                        <div className="overflow-y-auto flex-1 p-4 md:p-6 custom-scrollbar">
                             {!genderTrees[hovered!] ? (
                                 <p className="text-sm text-muted-foreground">Loading categories…</p>
                             ) : treeError || Object.keys(genderTrees[hovered!]).length === 0 ? (
@@ -289,7 +289,7 @@ export default function MegaNav() {
                     onMouseLeave={handleLeave}
                 >
                     <div className="bg-popover border border-border/50 rounded-lg shadow-xl w-full max-w-3xl mt-1 flex flex-col max-h-[80vh]">
-                        <div className="overflow-y-auto flex-1 p-4 md:p-6">
+                        <div className="overflow-y-auto flex-1 p-4 md:p-6 custom-scrollbar">
                             {!soloTrees[hovered!] ? (
                                 <p className="text-sm text-muted-foreground">Loading…</p>
                             ) : treeError || Object.keys(soloTrees[hovered!]).length === 0 ? (
