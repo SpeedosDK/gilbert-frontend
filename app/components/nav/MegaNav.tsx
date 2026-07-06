@@ -194,42 +194,44 @@ export default function MegaNav() {
                     onMouseEnter={() => handleEnter(hovered!)}
                     onMouseLeave={handleLeave}
                 >
-                    <div className="bg-popover border border-border/50 rounded-lg shadow-xl p-4 md:p-6 w-full max-w-5xl mt-1 overflow-hidden">
-                        {!genderTrees[hovered!] ? (
-                            <p className="text-sm text-muted-foreground">Loading categories…</p>
-                        ) : treeError || Object.keys(genderTrees[hovered!]).length === 0 ? (
-                            <p className="text-sm text-muted-foreground">No categories found.</p>
-                        ) : (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                                {Object.entries(genderTrees[hovered!]).map(([category, subs]) => (
-                                    <div key={`cat-${category}`}>
-                                        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 font-sans">
-                                            {category}
-                                        </h4>
-                                        <ul className="space-y-2">
-                                            {Array.isArray(subs) && subs.length === 0 ? (
-                                                <li className="text-xs text-muted-foreground/60 italic">No subcategories</li>
-                                            ) : (
-                                                (subs as SubcategoryItem[]).map((sub) => (
-                                                    <li key={sub.id}>
-                                                        <Link
-                                                            href={`/products/filter?gender=${GENDER_MAP[hovered!]}&subcategory=${sub.id}`}
-                                                            className="text-sm text-foreground/70 hover:text-foreground flex items-center gap-1 group/item transition-colors"
-                                                        >
-                                                            <span>{sub.name}</span>
-                                                            <svg className="h-3 w-3 opacity-0 -translate-x-1 group-hover/item:opacity-100 group-hover/item:translate-x-0 transition-all duration-150" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                                                <path d="M9 5l7 7-7 7" />
-                                                            </svg>
-                                                        </Link>
-                                                    </li>
-                                                ))
-                                            )}
-                                        </ul>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                        <div className="mt-5 pt-4 border-t border-border/30 flex items-center justify-between flex-wrap gap-2">
+                    <div className="bg-popover border border-border/50 rounded-lg shadow-xl w-full max-w-5xl mt-1 flex flex-col max-h-[80vh]">
+                        <div className="overflow-y-auto flex-1 p-4 md:p-6">
+                            {!genderTrees[hovered!] ? (
+                                <p className="text-sm text-muted-foreground">Loading categories…</p>
+                            ) : treeError || Object.keys(genderTrees[hovered!]).length === 0 ? (
+                                <p className="text-sm text-muted-foreground">No categories found.</p>
+                            ) : (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                                    {Object.entries(genderTrees[hovered!]).map(([category, subs]) => (
+                                        <div key={`cat-${category}`}>
+                                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 font-sans">
+                                                {category}
+                                            </h4>
+                                            <ul className="space-y-2">
+                                                {Array.isArray(subs) && subs.length === 0 ? (
+                                                    <li className="text-xs text-muted-foreground/60 italic">No subcategories</li>
+                                                ) : (
+                                                    (subs as SubcategoryItem[]).map((sub) => (
+                                                        <li key={sub.id}>
+                                                            <Link
+                                                                href={`/products/filter?gender=${GENDER_MAP[hovered!]}&subcategory=${sub.id}`}
+                                                                className="text-sm text-foreground/70 hover:text-foreground flex items-center gap-1 group/item transition-colors"
+                                                            >
+                                                                <span>{sub.name}</span>
+                                                                <svg className="h-3 w-3 opacity-0 -translate-x-1 group-hover/item:opacity-100 group-hover/item:translate-x-0 transition-all duration-150" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                                                    <path d="M9 5l7 7-7 7" />
+                                                                </svg>
+                                                            </Link>
+                                                        </li>
+                                                    ))
+                                                )}
+                                            </ul>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        <div className="px-4 md:px-6 py-3 border-t border-border/30 bg-popover rounded-b-lg flex-shrink-0">
                             <Link
                                 href={`/products/filter?gender=${GENDER_MAP[hovered!]}`}
                                 className="text-xs font-medium text-foreground/60 hover:text-foreground transition-colors uppercase tracking-wider whitespace-nowrap"
@@ -286,42 +288,44 @@ export default function MegaNav() {
                     onMouseEnter={() => handleEnter(hovered!)}
                     onMouseLeave={handleLeave}
                 >
-                    <div className="bg-popover border border-border/50 rounded-lg shadow-xl p-4 md:p-6 w-full max-w-3xl mt-1 overflow-hidden">
-                        {!soloTrees[hovered!] ? (
-                            <p className="text-sm text-muted-foreground">Loading…</p>
-                        ) : treeError || Object.keys(soloTrees[hovered!]).length === 0 ? (
-                            <p className="text-sm text-muted-foreground">No categories found.</p>
-                        ) : (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-                                {Object.entries(soloTrees[hovered!]).map(([category, subs]) => (
-                                    <div key={`cat-${category}`}>
-                                        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 font-sans">
-                                            {category}
-                                        </h4>
-                                        <ul className="space-y-2">
-                                            {Array.isArray(subs) && subs.length === 0 ? (
-                                                <li className="text-xs text-muted-foreground/60 italic">No subcategories</li>
-                                            ) : (
-                                                (subs as SubcategoryItem[]).map((sub) => (
-                                                    <li key={sub.id}>
-                                                        <Link
-                                                            href={`/products/filter?category=${category}&subcategory=${sub.id}`}
-                                                            className="text-sm text-foreground/70 hover:text-foreground flex items-center gap-1 group/item transition-colors"
-                                                        >
-                                                            <span>{sub.name}</span>
-                                                            <svg className="h-3 w-3 opacity-0 -translate-x-1 group-hover/item:opacity-100 group-hover/item:translate-x-0 transition-all duration-150" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                                                <path d="M9 5l7 7-7 7" />
-                                                            </svg>
-                                                        </Link>
-                                                    </li>
-                                                ))
-                                            )}
-                                        </ul>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                        <div className="mt-5 pt-4 border-t border-border/30 flex items-center justify-between flex-wrap gap-2">
+                    <div className="bg-popover border border-border/50 rounded-lg shadow-xl w-full max-w-3xl mt-1 flex flex-col max-h-[80vh]">
+                        <div className="overflow-y-auto flex-1 p-4 md:p-6">
+                            {!soloTrees[hovered!] ? (
+                                <p className="text-sm text-muted-foreground">Loading…</p>
+                            ) : treeError || Object.keys(soloTrees[hovered!]).length === 0 ? (
+                                <p className="text-sm text-muted-foreground">No categories found.</p>
+                            ) : (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+                                    {Object.entries(soloTrees[hovered!]).map(([category, subs]) => (
+                                        <div key={`cat-${category}`}>
+                                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 font-sans">
+                                                {category}
+                                            </h4>
+                                            <ul className="space-y-2">
+                                                {Array.isArray(subs) && subs.length === 0 ? (
+                                                    <li className="text-xs text-muted-foreground/60 italic">No subcategories</li>
+                                                ) : (
+                                                    (subs as SubcategoryItem[]).map((sub) => (
+                                                        <li key={sub.id}>
+                                                            <Link
+                                                                href={`/products/filter?category=${category}&subcategory=${sub.id}`}
+                                                                className="text-sm text-foreground/70 hover:text-foreground flex items-center gap-1 group/item transition-colors"
+                                                            >
+                                                                <span>{sub.name}</span>
+                                                                <svg className="h-3 w-3 opacity-0 -translate-x-1 group-hover/item:opacity-100 group-hover/item:translate-x-0 transition-all duration-150" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                                                    <path d="M9 5l7 7-7 7" />
+                                                                </svg>
+                                                            </Link>
+                                                        </li>
+                                                    ))
+                                                )}
+                                            </ul>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        <div className="px-4 md:px-6 py-3 border-t border-border/30 bg-popover rounded-b-lg flex-shrink-0">
                             <Link
                                 href={`/products/filter?category=${hovered}`}
                                 className="text-xs font-medium text-foreground/60 hover:text-foreground transition-colors uppercase tracking-wider whitespace-nowrap"

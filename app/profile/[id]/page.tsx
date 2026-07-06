@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/app/api/api";
 import { toggleFavorite } from "@/app/api/favorites";
-import { X, Star } from "lucide-react";
+import { X, Star, ShieldCheck, BadgeCheck, IdCard } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/UI/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/app/components/UI/tabs";
@@ -20,6 +20,11 @@ interface PublicUser {
     location?: { city?: string; country?: string };
     profile?: { bio?: string; language?: string; avatarUrl?: string };
     stats?: { ratingAverage?: number; ratingCount?: number };
+    badges?: {
+        isProfessional?: boolean;
+        isExpertSeller?: boolean;
+        isIdVerified?: boolean;
+    };
 }
 
 interface Review {
@@ -278,6 +283,30 @@ export default function PublicProfilePage() {
                             {ratingAvg > 0 ? ratingAvg.toFixed(1) : "No ratings"}{ratingCount > 0 ? ` (${ratingCount})` : ""}
                         </span>
                     </div>
+
+                    {/* USER BADGES */}
+                    {(user.badges?.isProfessional || user.badges?.isExpertSeller || user.badges?.isIdVerified) && (
+                        <div className="flex flex-wrap items-center gap-2">
+                            {user.badges?.isProfessional && (
+                                <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200 shadow-sm">
+                                    <BadgeCheck size={10} />
+                                    Professional
+                                </div>
+                            )}
+                            {user.badges?.isExpertSeller && (
+                                <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 shadow-sm">
+                                    <ShieldCheck size={10} />
+                                    Expert Seller
+                                </div>
+                            )}
+                            {user.badges?.isIdVerified && (
+                                <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-purple-600 bg-purple-50 px-2.5 py-1 rounded-full border border-purple-200 shadow-sm">
+                                    <IdCard size={10} />
+                                    ID Verified
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {currentUser && currentUser._id !== user._id && (
