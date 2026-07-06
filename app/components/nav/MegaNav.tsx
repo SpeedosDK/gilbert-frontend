@@ -145,11 +145,9 @@ export default function MegaNav() {
                     const hasDropdown = isGender || isBrands || isSolo;
 
                     const sharedClassName = `text-[11px] sm:text-xs md:text-sm whitespace-nowrap px-2 md:px-3 py-1 transition-colors inline-block cursor-pointer ${
-                        (link as any).highlight
-                            ? "text-accent font-semibold hover:text-burgundy-light"
-                            : hovered === link.label
-                                ? "text-foreground"
-                                : "text-foreground/70 hover:text-foreground"
+                        hovered === link.label
+                            ? "text-foreground"
+                            : "text-foreground/70 hover:text-foreground"
                     }`;
 
                     return (
@@ -196,15 +194,15 @@ export default function MegaNav() {
                     onMouseEnter={() => handleEnter(hovered!)}
                     onMouseLeave={handleLeave}
                 >
-                    <div className="bg-popover border border-border/50 rounded-lg shadow-xl p-4 md:p-6 max-w-[95vw] w-auto mt-1">
+                    <div className="bg-popover border border-border/50 rounded-lg shadow-xl p-4 md:p-6 w-full max-w-5xl mt-1 overflow-hidden">
                         {!genderTrees[hovered!] ? (
                             <p className="text-sm text-muted-foreground">Loading categories…</p>
                         ) : treeError || Object.keys(genderTrees[hovered!]).length === 0 ? (
                             <p className="text-sm text-muted-foreground">No categories found.</p>
                         ) : (
-                            <div className="flex flex-wrap gap-6 md:gap-8">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
                                 {Object.entries(genderTrees[hovered!]).map(([category, subs]) => (
-                                    <div key={`cat-${category}`} className="min-w-[8rem]">
+                                    <div key={`cat-${category}`}>
                                         <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 font-sans">
                                             {category}
                                         </h4>
@@ -231,10 +229,10 @@ export default function MegaNav() {
                                 ))}
                             </div>
                         )}
-                        <div className="mt-5 pt-4 border-t border-border/30">
+                        <div className="mt-5 pt-4 border-t border-border/30 flex items-center justify-between flex-wrap gap-2">
                             <Link
                                 href={`/products/filter?gender=${GENDER_MAP[hovered!]}`}
-                                className="text-xs font-medium text-foreground/60 hover:text-foreground transition-colors uppercase tracking-wider"
+                                className="text-xs font-medium text-foreground/60 hover:text-foreground transition-colors uppercase tracking-wider whitespace-nowrap"
                             >
                                 See everything in {hovered} →
                             </Link>
@@ -250,14 +248,14 @@ export default function MegaNav() {
                     onMouseEnter={() => handleEnter("Brands")}
                     onMouseLeave={handleLeave}
                 >
-                    <div className="bg-popover border border-border/50 rounded-lg shadow-xl p-4 md:p-6 max-w-[95vw] w-auto mt-1">
+                    <div className="bg-popover border border-border/50 rounded-lg shadow-xl p-4 md:p-6 w-full max-w-sm mt-1 overflow-hidden">
                         <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
                             Popular brands
                         </h4>
                         {brands.length === 0 ? (
                             <p className="text-sm text-muted-foreground">Loading brands…</p>
                         ) : (
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-2 min-w-[250px]">
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-2">
                                 {brands.slice(0, BRANDS_PREVIEW).map((brand) => (
                                     <Link
                                         key={brand._id}
@@ -272,7 +270,7 @@ export default function MegaNav() {
                         <div className="mt-5 pt-4 border-t border-border/30">
                             <Link
                                 href="/brands"
-                                className="text-xs font-medium text-foreground/60 hover:text-foreground transition-colors uppercase tracking-wider"
+                                className="text-xs font-medium text-foreground/60 hover:text-foreground transition-colors uppercase tracking-wider whitespace-nowrap"
                             >
                                 See all brands ({brands.length}) →
                             </Link>
@@ -288,15 +286,15 @@ export default function MegaNav() {
                     onMouseEnter={() => handleEnter(hovered!)}
                     onMouseLeave={handleLeave}
                 >
-                    <div className="bg-popover border border-border/50 rounded-lg shadow-xl p-4 md:p-6 max-w-[95vw] w-auto mt-1">
+                    <div className="bg-popover border border-border/50 rounded-lg shadow-xl p-4 md:p-6 w-full max-w-3xl mt-1 overflow-hidden">
                         {!soloTrees[hovered!] ? (
                             <p className="text-sm text-muted-foreground">Loading…</p>
                         ) : treeError || Object.keys(soloTrees[hovered!]).length === 0 ? (
                             <p className="text-sm text-muted-foreground">No categories found.</p>
                         ) : (
-                            <div className="flex flex-wrap gap-6 md:gap-8">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
                                 {Object.entries(soloTrees[hovered!]).map(([category, subs]) => (
-                                    <div key={`cat-${category}`} className="min-w-[8rem]">
+                                    <div key={`cat-${category}`}>
                                         <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 font-sans">
                                             {category}
                                         </h4>
@@ -323,10 +321,10 @@ export default function MegaNav() {
                                 ))}
                             </div>
                         )}
-                        <div className="mt-5 pt-4 border-t border-border/30">
+                        <div className="mt-5 pt-4 border-t border-border/30 flex items-center justify-between flex-wrap gap-2">
                             <Link
                                 href={`/products/filter?category=${hovered}`}
-                                className="text-xs font-medium text-foreground/60 hover:text-foreground transition-colors uppercase tracking-wider"
+                                className="text-xs font-medium text-foreground/60 hover:text-foreground transition-colors uppercase tracking-wider whitespace-nowrap"
                             >
                                 See everything in {hovered} →
                             </Link>

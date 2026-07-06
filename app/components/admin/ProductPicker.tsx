@@ -76,9 +76,15 @@ export default function ProductPicker({ selectedIds, onSelectionChange }: Props)
                                 <span className="text-xs font-bold uppercase text-gray-500 tracking-wider">
                                     {getBrandName(product.brand)}
                                 </span>
-                                <span className="text-black font-medium text-sm">
+                                <a
+                                    href={`/products/${product._id}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="text-black font-medium text-sm hover:underline w-fit"
+                                >
                                     {product.title}
-                                </span>
+                                </a>
                             </div>
 
                             {selectedIds.includes(product._id) ? (

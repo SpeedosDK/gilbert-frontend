@@ -10,7 +10,7 @@ const API_URL = ''; // relative ? Next.js proxy handles routing to backend
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/UI/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/app/components/UI/tabs";
-import { Settings, X, ArrowRight, CreditCard, ShieldCheck, AlertCircle, Download, ExternalLink, Camera, Loader2 } from "lucide-react";
+import { Settings, X, ArrowRight, CreditCard, ShieldCheck, AlertCircle, Download, ExternalLink, Camera, Loader2, BadgeCheck, Star, IdCard } from "lucide-react";
 import { Button } from "@/app/components/UI/button";
 
 import {
@@ -64,6 +64,11 @@ interface UserProfile {
     profile?: { bio?: string; language?: string; avatarUrl?: string };
     role: string;
     stripeAccountId?: string;
+    badges?: {
+        isProfessional?: boolean;
+        isExpertSeller?: boolean;
+        isIdVerified?: boolean;
+    };
 }
 
 const MePage = () => {
@@ -310,7 +315,7 @@ const MePage = () => {
                     </div>
 
                     {/* STRIPE STATUS BADGE */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                         {user.stripeAccountId ? (
                             <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-green-600 bg-green-50 px-2.5 py-1 rounded-full border border-green-200 shadow-sm">
                                 <ShieldCheck size={10} />
@@ -321,6 +326,26 @@ const MePage = () => {
                                 <AlertCircle size={10} />
                                 Enable Payouts
                             </Link>
+                        )}
+
+                        {/* USER BADGES */}
+                        {user.badges?.isProfessional && (
+                            <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200 shadow-sm">
+                                <BadgeCheck size={10} />
+                                Professional
+                            </div>
+                        )}
+                        {user.badges?.isExpertSeller && (
+                            <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 shadow-sm">
+                                <Star size={10} />
+                                Expert Seller
+                            </div>
+                        )}
+                        {user.badges?.isIdVerified && (
+                            <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-purple-600 bg-purple-50 px-2.5 py-1 rounded-full border border-purple-200 shadow-sm">
+                                <IdCard size={10} />
+                                ID Verified
+                            </div>
                         )}
                     </div>
                 </div>
