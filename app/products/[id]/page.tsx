@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
     MessageCircle, ArrowLeft, X, Heart, Share2,
-    ChevronRight, Pencil
+    ChevronRight, Pencil, Trash2
 } from "lucide-react";
 
 import { Button } from "@/app/components/UI/button";
@@ -151,16 +151,40 @@ const ProductDetailsPage = () => {
     if (state.loading) return <div className="max-w-6xl mx-auto px-4 min-h-screen bg-background" />;
     if (!state.product) return <div className="p-20 text-center">Product not found.</div>;
 
+    const handleDeleteProduct = async () => {
+        if (!state.product) return;
+        if (!confirm("Are you sure you want to delete this listing?")) return;
+        try {
+            const res = await api(`/api/products/${state.product._id}`, { method: "DELETE" });
+            if (res.ok) {
+                router.push(`/profile/${user?._id}`);
+            } else {
+                alert("Could not delete the product. Please try again.");
+            }
+        } catch {
+            alert("Something went wrong. Please try again.");
+        }
+    };
+
     const { product, isFavorite, similarProducts } = state;
-    // Show the review banner only for products still awaiting approval
+    const isOwnProduct = !!(user && String(user._id) === String(product.seller?._id));
+    const isApproved = product.status === "Approved";
     const isInReview = product.status === "In Review";
+    const isRejected = product.status === "Rejected";
+    const isPendingOrRejected = isInReview || isRejected;
 
     return (
         <div className="max-w-6xl mx-auto px-4 pb-16 min-h-screen">
             {isInReview && (
                 <div className="my-4 px-4 py-3 rounded-xl bg-yellow-600/20 border border-yellow-500/40 text-yellow-200 text-sm flex items-center gap-2">
-                    <span className="font-bold uppercase tracking-wider text-xs">Admin Preview</span>
-                    <span className="text-yellow-200/70">— This product has not been approved yet. Purchase actions are disabled.</span>
+                    <span className="font-bold uppercase tracking-wider text-xs">In Review</span>
+                    <span className="text-yellow-200/70">— This product is awaiting approval. Purchase actions are disabled.</span>
+                </div>
+            )}
+            {isRejected && (
+                <div className="my-4 px-4 py-3 rounded-xl bg-red-600/20 border border-red-500/40 text-red-200 text-sm flex items-center gap-2">
+                    <span className="font-bold uppercase tracking-wider text-xs">Rejected</span>
+                    <span className="text-red-200/70">— This listing was not approved. You can delete it below.</span>
                 </div>
             )}
             <nav className="flex items-center gap-1.5 text-xs text-muted-foreground py-4 mb-2">
@@ -234,16 +258,26 @@ const ProductDetailsPage = () => {
                     </div>
 
                     <div className="space-y-3 pt-4">
-                        {user && String(user._id) === String(product.seller?._id) && (
-                            <Link href={`/products/${product._id}/edit`}>
-                                <Button variant="outline" className="w-full h-12 rounded-2xl font-bold flex items-center justify-center gap-2">
-                                    <Pencil className="h-4 w-4" /> Edit listing
+                        {isOwnProduct && isApproved && (
+                            <div className="flex gap-2">
+                                <Link href={`/products/${product._id}/edit`} className="flex-1">
+                                    <Button variant="outline" className="w-full h-12 rounded-2xl font-bold flex items-center justify-center gap-2">
+                                        <Pencil className="h-4 w-4" /> Edit listing
+                                    </Button>
+                                </Link>
+                                <Button variant="outline" onClick={handleDeleteProduct} className="h-12 px-4 rounded-2xl font-bold text-red-400 border-red-400/40 hover:bg-red-400/10 flex items-center gap-2">
+                                    <Trash2 className="h-4 w-4" /> Delete
                                 </Button>
-                            </Link>
+                            </div>
                         )}
-                        {isInReview ? (
+                        {isOwnProduct && isPendingOrRejected && (
+                            <Button variant="outline" onClick={handleDeleteProduct} className="w-full h-12 rounded-2xl font-bold text-red-400 border-red-400/40 hover:bg-red-400/10 flex items-center justify-center gap-2">
+                                <Trash2 className="h-4 w-4" /> Delete listing
+                            </Button>
+                        )}
+                        {isPendingOrRejected ? (
                             <div className="px-4 py-3 rounded-xl bg-yellow-600/10 border border-yellow-500/30 text-yellow-200/70 text-sm text-center">
-                                Purchase actions are disabled in admin preview mode.
+                                Purchase actions are disabled for this listing.
                             </div>
                         ) : (
                         <>
